@@ -17,12 +17,12 @@ export const TeamSection = () => {
             The Builders
           </p>
           <h2 className="font-serif text-5xl md:text-6xl text-[#F5F0E8] mb-4">
-            Four students.<br />
+            Four builders.<br />
             <span className="text-[#C9A84C]">One mission.</span>
           </h2>
           <p className="text-[#F5F0E8]/30 max-w-lg mx-auto leading-relaxed">
-            A final-year engineering project that became a platform serving real farmers.
-            Built with genuine curiosity and a shared belief that technology can improve lives.
+            A dedicated team building a platform to serve real farmers.
+            Driven by a shared belief that technology can improve lives and transform agriculture.
           </p>
         </motion.div>
 

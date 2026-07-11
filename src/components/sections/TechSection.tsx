@@ -25,7 +25,7 @@ export const TechSection = () => {
             <span className="text-[#C9A84C]">production-grade</span> tools.
           </h2>
           <p className="text-[#F5F0E8]/30 max-w-lg mx-auto">
-            Not a student prototype. A production system using industry-standard technologies.
+            A production-ready system engineered for scale, reliability, and speed.
           </p>
         </motion.div>
 
