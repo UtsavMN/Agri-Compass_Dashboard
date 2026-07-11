@@ -1,0 +1,314 @@
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+
+// ─── FARMER STORY SCROLL ──────────────────────────────────────────────────────
+const FarmerStory = () => {
+  const ref = useRef(null);
+
+  const decisions = [
+    {
+      question: "Which crop should I grow?",
+      before: "Ask the neighbour",
+      after: "AI recommendation with 92% confidence",
+      icon: "🌾",
+    },
+    {
+      question: "Will it rain this week?",
+      before: "Watch the clouds",
+      after: "5-day hyper-local forecast with farming advisory",
+      icon: "🌦",
+    },
+    {
+      question: "How much fertilizer do I need?",
+      before: "Guess based on experience",
+      after: "Exact quantities from soil NPK analysis",
+      icon: "🧪",
+    },
+    {
+      question: "Where should I sell my harvest?",
+      before: "Whoever shows up first",
+      after: "Compare mandi prices across Karnataka",
+      icon: "📈",
+    },
+    {
+      question: "What government help is available?",
+      before: "Never found out",
+      after: "Personalised scheme matches — PM-KISAN, Raitha Siri, PMFBY",
+      icon: "🏛",
+    },
+  ];
+
+  return (
+    <div ref={ref} className="space-y-6">
+      {decisions.map((d, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ delay: i * 0.1, duration: 0.7 }}
+          className="bg-[#111008] border border-[#2A2720] rounded-2xl p-6
+                     hover:border-[#C9A84C]/20 transition-all duration-300"
+        >
+          <div className="flex items-start gap-4">
+            <span className="text-2xl flex-shrink-0 mt-0.5">{d.icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[#F5F0E8]/70 text-sm font-serif mb-3 leading-relaxed">
+                "{d.question}"
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-[#1a0a0a] border border-[#E06060]/15 rounded-lg px-3 py-2">
+                  <p className="text-[9px] text-[#E06060]/50 font-mono uppercase tracking-wider mb-1">
+                    Before
+                  </p>
+                  <p className="text-[#F5F0E8]/35 text-xs">{d.before}</p>
+                </div>
+                <div className="bg-[#0a1a0a] border border-[#7EC47E]/15 rounded-lg px-3 py-2">
+                  <p className="text-[9px] text-[#7EC47E]/50 font-mono uppercase tracking-wider mb-1">
+                    With AgriCompass
+                  </p>
+                  <p className="text-[#F5F0E8]/60 text-xs">{d.after}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// ─── KNOWLEDGE FLOW ANIMATION ─────────────────────────────────────────────────
+const KnowledgeFlow = () => {
+  const nodes = [
+    { label: "Experienced Farmer", icon: "👴", color: "#C9A84C" },
+    { label: "AgriCompass Community", icon: "📱", color: "#7EC47E" },
+    { label: "Young Farmer", icon: "👨‍🌾", color: "#6090E0" },
+    { label: "Future Generations", icon: "🌱", color: "#C9A84C" },
+  ];
+
+  return (
+    <div className="flex flex-col items-center gap-0">
+      {nodes.map((node, i) => (
+        <div key={i} className="flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.2, duration: 0.6 }}
+            className="flex flex-col items-center text-center"
+          >
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-2"
+              style={{
+                background: `${node.color}15`,
+                border: `1.5px solid ${node.color}35`,
+                boxShadow: `0 0 20px ${node.color}18`,
+              }}
+            >
+              {node.icon}
+            </div>
+            <p className="text-[#F5F0E8]/60 text-sm font-mono">{node.label}</p>
+          </motion.div>
+
+          {i < nodes.length - 1 && (
+            <div className="relative h-12 flex items-center justify-center">
+              <div className="w-0.5 h-full bg-gradient-to-b from-[#C9A84C]/40 to-[#C9A84C]/10" />
+              <motion.div
+                className="absolute w-2 h-2 bg-[#C9A84C] rounded-full"
+                style={{ boxShadow: "0 0 8px #C9A84C" }}
+                animate={{ y: ["0%", "100%"], opacity: [1, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 1.5,
+                  delay: i * 0.4,
+                  ease: "linear",
+                }}
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─── FUTURE ROADMAP ───────────────────────────────────────────────────────────
+const futureVision = [
+  { icon: "🛰", title: "Satellite Monitoring", description: "Crop health analysis from satellite imagery — detect disease before it spreads" },
+  { icon: "🤖", title: "Predictive AI", description: "ML models that predict optimal harvest windows and price peaks weeks in advance" },
+  { icon: "💧", title: "Smart Irrigation", description: "IoT soil sensors that trigger irrigation automatically based on moisture levels" },
+  { icon: "🚁", title: "Drone Analytics", description: "Aerial crop mapping that identifies yield variations across each farm sector" },
+  { icon: "🦠", title: "Disease Detection", description: "Computer vision that identifies pest infestations from photos taken on any smartphone" },
+  { icon: "🌍", title: "Multi-State Expansion", description: "Extend beyond Karnataka to cover all major agricultural states across India" },
+];
+
+// ─── MAIN VISION SECTION ──────────────────────────────────────────────────────
+export const VisionSection = () => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+
+  return (
+    <section id="vision" ref={ref} className="py-32 bg-[#0A0900]">
+      <div className="max-w-6xl mx-auto px-6">
+
+        {/* Header */}
+        <motion.div className="text-center mb-24"
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.85 }}>
+          <p className="text-[#C9A84C] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+            The Vision
+          </p>
+          <h2 className="font-serif text-5xl md:text-6xl text-[#F5F0E8] mb-6 max-w-3xl mx-auto leading-tight">
+            Why does<br />
+            <span className="text-[#C9A84C]">AgriCompass</span> exist?
+          </h2>
+          <p className="text-[#F5F0E8]/40 text-lg max-w-2xl mx-auto leading-relaxed">
+            Every day, millions of farmers in Karnataka make decisions that affect their
+            families' income — without access to the data that could help them choose better.
+            AgriCompass is an attempt to change that.
+          </p>
+        </motion.div>
+
+        {/* Farmer story */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start mb-28">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7 }}
+              className="mb-8"
+            >
+              <p className="text-[#C9A84C] text-xs font-mono uppercase tracking-wider mb-3">
+                The everyday challenge
+              </p>
+              <h3 className="font-serif text-3xl text-[#F5F0E8] mb-4">
+                Every farmer faces these decisions. Every season.
+              </h3>
+              <p className="text-[#F5F0E8]/35 text-sm leading-relaxed">
+                The difference between a profitable harvest and a loss often comes down
+                to information that exists — but was never accessible. AgriCompass bridges that gap.
+              </p>
+            </motion.div>
+            <FarmerStory />
+          </div>
+
+          {/* Knowledge preservation */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="mb-8"
+            >
+              <p className="text-[#C9A84C] text-xs font-mono uppercase tracking-wider mb-3">
+                Knowledge should never be lost
+              </p>
+              <h3 className="font-serif text-3xl text-[#F5F0E8] mb-4">
+                Generations of farming wisdom — preserved and shared.
+              </h3>
+              <p className="text-[#F5F0E8]/35 text-sm leading-relaxed">
+                When an experienced farmer retires, decades of local knowledge disappear.
+                The AgriCompass community platform ensures that knowledge flows forward —
+                from experienced farmers to the next generation.
+              </p>
+            </motion.div>
+            <KnowledgeFlow />
+          </div>
+        </div>
+
+        {/* Mission statement */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-24 py-16 border-y border-[#2A2720]"
+        >
+          <p className="text-[#C9A84C] text-xs font-mono uppercase tracking-[0.3em] mb-6">
+            Our Vision
+          </p>
+          <blockquote className="font-serif text-3xl md:text-4xl text-[#F5F0E8]/80 max-w-3xl mx-auto leading-relaxed">
+            "Empowering every farmer with intelligent decision-making —
+            through AI, data, and community knowledge."
+          </blockquote>
+        </motion.div>
+
+        {/* Multilingual accessibility */}
+        <div className="mb-24">
+          <motion.div className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}>
+            <p className="text-[#C9A84C] text-xs font-mono uppercase tracking-wider mb-3">
+              Accessibility First
+            </p>
+            <h3 className="font-serif text-3xl text-[#F5F0E8]">
+              Built for farmers, not for engineers.
+            </h3>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              { icon: "🇮🇳", title: "Kannada First", desc: "Full UI translation. Every label, button, and message available in Kannada.", color: "#C9A84C" },
+              { icon: "🗣", title: "Voice Navigation", desc: "Farmers who find typing difficult can speak to navigate the entire app.", color: "#7EC47E" },
+              { icon: "📱", title: "Any Device", desc: "Designed for ₹8,000 Android phones with 2G connectivity in rural areas.", color: "#6090E0" },
+            ].map((item, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                whileHover={{ y: -5 }}
+                className="bg-[#111008] border border-[#2A2720] rounded-2xl p-7 text-center transition-all duration-300">
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <p className="font-semibold text-[#F5F0E8] mb-2">{item.title}</p>
+                <p className="text-[#F5F0E8]/35 text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Future roadmap */}
+        <div>
+          <motion.div className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}>
+            <p className="text-[#C9A84C] text-xs font-mono uppercase tracking-wider mb-3">
+              What Comes Next
+            </p>
+            <h3 className="font-serif text-3xl text-[#F5F0E8] mb-4">
+              The roadmap ahead.
+            </h3>
+            <p className="text-[#F5F0E8]/30 max-w-lg mx-auto text-sm">
+              AgriCompass V1 is live. These are the capabilities we're building toward.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {futureVision.map((item, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, scale: 0.92 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                whileHover={{ y: -4, borderColor: "rgba(201,168,76,0.2)" }}
+                className="bg-[#111008] border border-[#2A2720] rounded-xl p-6 transition-all duration-300">
+                <div className="text-3xl mb-3">{item.icon}</div>
+                <p className="text-[#F5F0E8]/75 font-semibold mb-2">{item.title}</p>
+                <p className="text-[#F5F0E8]/30 text-sm leading-relaxed">{item.description}</p>
+                <div className="mt-4">
+                  <span className="text-[10px] font-mono text-[#C9A84C]/50 border border-[#C9A84C]/15 px-2 py-0.5 rounded-full">
+                    Planned
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
