@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, Suspense, useMemo } from "react";
+import { useEffect, useRef, Suspense, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useScroll, useSpring } from "framer-motion";
 import * as THREE from "three";
@@ -13,6 +13,7 @@ import { FallingLeaves } from "./effects/FallingLeaves";
 import { Butterflies } from "./effects/Butterflies";
 import { Universe } from "./Universe";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { useQualityStore } from "../../store/useQualityStore";
 
 const cameraPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0, 1.5, 6),       // 0: Universe view
@@ -220,26 +221,18 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
 };
 
 export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
-  const [dpr, setDpr] = useState(1.5);
-  const [isMobile, setIsMobile] = useState(false);
+  const { settings, stepUp, stepDown } = useQualityStore();
   const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none">
       <Canvas
         camera={{ position: [0, 1.5, 6], fov: 45 }}
         gl={{ antialias: false, powerPreference: "high-performance", alpha: true }}
-        dpr={dpr}
+        dpr={settings.dpr}
       >
         <Suspense fallback={null}>
-          <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
+          <PerformanceMonitor onDecline={stepDown} onIncline={stepUp} />
           <fog attach="fog" args={["#1a1500", 10, 70]} />
           <FogRig isIntro={!introComplete} />
           <LightRig isIntro={!introComplete} />
@@ -253,8 +246,8 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
             position={[15, 15, 10]} 
             intensity={2.5} 
             color="#FFD700" 
-            castShadow 
-            shadow-mapSize={[2048, 2048]}
+            castShadow={settings.shadowMapSize > 0} 
+            shadow-mapSize={[settings.shadowMapSize || 1024, settings.shadowMapSize || 1024]}
             shadow-camera-near={0.5}
             shadow-camera-far={100}
             shadow-camera-left={-30}
@@ -278,40 +271,28 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           <group position={[0, -50, -100]}>
             <BackgroundLayers />
             <ProceduralTree position={[0, 0, 0]} />
-            {!isMobile && !reducedMotion && <VolumetricShafts />}
-            <FallingLeaves count={isMobile || reducedMotion ? 10 : 75} /> 
-            <Butterflies count={isMobile || reducedMotion ? 0 : 3} />
+            {settings.volumetricFog && !reducedMotion ? <VolumetricShafts /> : <></>}
+            <FallingLeaves count={reducedMotion ? 10 : Math.floor(75 * settings.leafDensity)} /> 
+            <Butterflies count={reducedMotion ? 0 : settings.butterflyCount} />
           </group>
 
-          {isMobile ? (
-            <EffectComposer multisampling={0}>
-              <Bloom 
-                luminanceThreshold={0.2} 
-                luminanceSmoothing={0.9} 
-                intensity={1.2} 
-                mipmapBlur 
+          <EffectComposer multisampling={0}>
+            <Bloom 
+              luminanceThreshold={0.2} 
+              luminanceSmoothing={0.9} 
+              intensity={settings.bloom} 
+              mipmapBlur 
+            />
+            {/* Depth of field only when we are orbiting tree and high quality */}
+            {introComplete && settings.dpr > 1.0 ? (
+              <DepthOfField 
+                focusDistance={0.015} 
+                focalLength={0.1} 
+                bokehScale={3} 
               />
-              <Vignette eskil={false} offset={0.1} darkness={1.1} />
-            </EffectComposer>
-          ) : (
-            <EffectComposer multisampling={0}>
-              <Bloom 
-                luminanceThreshold={0.2} 
-                luminanceSmoothing={0.9} 
-                intensity={1.4} 
-                mipmapBlur 
-              />
-              {/* Depth of field only when we are orbiting tree */}
-              {introComplete ? (
-                <DepthOfField 
-                  focusDistance={0.015} 
-                  focalLength={0.1} 
-                  bokehScale={3} 
-                />
-              ) : <></>}
-              <Vignette eskil={false} offset={0.1} darkness={1.2} />
-            </EffectComposer>
-          )}
+            ) : <></>}
+            <Vignette eskil={false} offset={0.1} darkness={1.2} />
+          </EffectComposer>
         </Suspense>
       </Canvas>
     </div>

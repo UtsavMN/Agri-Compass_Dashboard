@@ -3,6 +3,7 @@ import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScroll } from "framer-motion";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { useQualityStore } from "../../store/useQualityStore";
 
 // ─── L-SYSTEM GENERATOR (Banyan-Inspired Organic Growth) ────────────────────────
 const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadius = 1.3) => {
@@ -299,8 +300,8 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial) => {
 };
 
 // ─── KNOWLEDGE FLOW SYSTEM ──────────────────────────────────────────────────────
-const KnowledgeFlowSystem = ({ paths }: { paths: THREE.Vector3[][] }) => {
-  const particleCount = 400;
+const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], maxCount: number }) => {
+  const particleCount = maxCount;
   const pointsRef = useRef<THREE.Points>(null);
   const reducedMotion = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
@@ -420,6 +421,7 @@ const KnowledgeFlowSystem = ({ paths }: { paths: THREE.Vector3[][] }) => {
 
 export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [number, number, number] }) => {
   const { scrollYProgress } = useScroll();
+  const { settings } = useQualityStore();
   const reducedMotion = useReducedMotion();
   const mainBranchMeshRef = useRef<THREE.InstancedMesh>(null);
   const twigMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -486,6 +488,21 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = customUniforms.current.uTime;
       shader.uniforms.uSeason = customUniforms.current.uSeason;
+      
+      const windCode = settings.windComplexity === "none" ? `vec3 transformed = pos;` : 
+        settings.windComplexity === "simple" ? `
+          float flutter = sin(uTime * 3.0 + worldPos.x * 5.0) * 0.05 * scale;
+          float s = sin(flutter); float c = cos(flutter);
+          mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
+          vec3 transformed = rotX * pos;
+        ` : `
+          float flutter = sin(uTime * 6.0 + worldPos.x * 12.0) * 0.1 * scale;
+          float s = sin(flutter); float c = cos(flutter);
+          mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
+          pos = rotX * pos;
+          vec3 transformed = pos;
+        `;
+
       shader.vertexShader = `
         uniform float uTime;
         uniform float uSeason;
@@ -498,17 +515,12 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         float wrapSeason = min(uSeason, abs(uSeason - 1.0));
         float scale = smoothstep(0.2, 0.05, wrapSeason);
         pos *= scale;
-        float flutter = sin(uTime * 6.0 + worldPos.x * 12.0) * 0.1 * scale;
-        float s = sin(flutter);
-        float c = cos(flutter);
-        mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
-        pos = rotX * pos;
-        vec3 transformed = pos;
+        ${windCode}
         `
       );
     };
     return mat;
-  }, []);
+  }, [settings.windComplexity]);
 
   const leafMat = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
@@ -519,6 +531,22 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       shader.uniforms.uTime = customUniforms.current.uTime;
       shader.uniforms.uSeason = customUniforms.current.uSeason;
       
+      const windCode = settings.windComplexity === "none" ? `vec3 transformed = pos;` :
+        settings.windComplexity === "simple" ? `
+          float sway = sin(uTime * 0.8 + worldPos.z * 0.2) * 0.05 * scale;
+          pos.x += sway * pos.y;
+          vec3 transformed = pos;
+        ` : `
+          float flutter = sin(uTime * 4.0 + worldPos.x * 5.0 + worldPos.y * 3.0) * 0.15 * scale;
+          float s = sin(flutter);
+          float c = cos(flutter);
+          mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
+          pos = rotX * pos;
+          float sway = sin(uTime * 0.8 + worldPos.z * 0.2 + worldPos.x * 0.1) * 0.1 * scale;
+          pos.x += sway * pos.y;
+          vec3 transformed = pos;
+        `;
+
       shader.vertexShader = `
         uniform float uTime;
         uniform float uSeason;
@@ -540,15 +568,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         }
         pos *= max(scale, 0.0);
         
-        // Wind interaction
-        float flutter = sin(uTime * 4.0 + worldPos.x * 5.0 + worldPos.y * 3.0) * 0.15 * scale;
-        float s = sin(flutter);
-        float c = cos(flutter);
-        mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
-        pos = rotX * pos;
-        float sway = sin(uTime * 0.8 + worldPos.z * 0.2 + worldPos.x * 0.1) * 0.1 * scale;
-        pos.x += sway * pos.y;
-        vec3 transformed = pos;
+        ${windCode}
         `
       );
       
@@ -578,7 +598,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       );
     };
     return mat;
-  }, [leafTexture]);
+  }, [leafTexture, settings.windComplexity]);
 
   useEffect(() => {
     if (mainBranchMeshRef.current) {
@@ -655,14 +675,14 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       <instancedMesh ref={twigMeshRef} args={[twigGeo, mainBarkMat, twigMatrices.length]} castShadow receiveShadow />
       
       {/* Leaves (Multiple Meshes for Variation) */}
-      <instancedMesh ref={leafMeshRef1} args={[leafGeo1, leafMat, leafMatrices1.length]} castShadow receiveShadow />
-      <instancedMesh ref={leafMeshRef2} args={[leafGeo2, leafMat, leafMatrices2.length]} castShadow receiveShadow />
+      <instancedMesh ref={leafMeshRef1} args={[leafGeo1, leafMat, leafMatrices1.length]} count={Math.floor(leafMatrices1.length * settings.leafDensity)} castShadow receiveShadow />
+      <instancedMesh ref={leafMeshRef2} args={[leafGeo2, leafMat, leafMatrices2.length]} count={Math.floor(leafMatrices2.length * settings.leafDensity)} castShadow receiveShadow />
       
       {/* Blossoms */}
-      <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} receiveShadow />
+      <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} count={Math.floor(blossomMatrices.length * settings.leafDensity)} receiveShadow />
 
       {/* Knowledge Flow Particles */}
-      <KnowledgeFlowSystem paths={flowPaths} />
+      <KnowledgeFlowSystem paths={flowPaths} maxCount={settings.particleCount} />
     </group>
   );
 };
