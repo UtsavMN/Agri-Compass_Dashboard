@@ -8,10 +8,10 @@ export const Drone = () => {
   useFrame((state) => {
     if (!group.current) return;
     const t = state.clock.elapsedTime;
-    group.current.position.x = Math.sin(t * 0.25) * 9;
-    group.current.position.z = Math.cos(t * 0.25) * 7;
-    group.current.position.y = 4.5 + Math.sin(t * 0.7) * 0.3;
-    group.current.rotation.y = t * 0.25 + Math.PI;
+    group.current.position.x = Math.sin(t * 0.2) * 4;
+    group.current.position.z = Math.cos(t * 0.2) * 2 - 2;
+    group.current.position.y = 2.8 + Math.sin(t * 0.7) * 0.4;
+    group.current.rotation.y = t * 0.2 + Math.PI;
   });
 
   const armPositions: [number, number, number][] = [
@@ -34,10 +34,10 @@ export const Drone = () => {
           <mesh>
             <cylinderGeometry args={[0.18, 0.18, 0.025, 8]} />
             <meshStandardMaterial
-              color="#C9A84C"
+              color="#E5D08F"
               metalness={0.95}
               roughness={0.05}
-              emissive="#C9A84C"
+              emissive="#E5D08F"
               emissiveIntensity={0.4}
             />
           </mesh>
@@ -46,7 +46,7 @@ export const Drone = () => {
       {/* Scan beam */}
       <pointLight
         position={[0, -0.6, 0]}
-        color="#C9A84C"
+        color="#E5D08F"
         intensity={2.5}
         distance={6}
       />

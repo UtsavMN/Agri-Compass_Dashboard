@@ -1,26 +1,49 @@
+import { motion } from "framer-motion";
+
 export const Footer = () => (
-  <footer className="bg-[#080706] border-t border-[#2A2720] py-12 px-6">
-    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-[#C9A84C]/15 border border-[#C9A84C]/30 rounded-lg flex items-center justify-center text-sm">
-          🌾
+  <footer className="border-t border-[#2A2720] bg-[#0A0900] py-12 px-6">
+    <div className="max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+
+        {/* Brand */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-[#E5D08F]/12 border border-[#E5D08F]/25 rounded-lg
+                          flex items-center justify-center text-sm">
+            🌾
+          </div>
+          <span className="text-[#E5D08F] font-semibold font-mono text-sm tracking-[0.3em]">
+            AGRI COMPASS
+          </span>
         </div>
-        <span className="text-[#C9A84C] font-semibold font-mono tracking-widest text-sm">
-          AGRI COMPASS
-        </span>
-      </div>
-      
-      <p className="text-[#F5F0E8]/30 text-xs font-mono text-center md:text-left">
-        Built for the farmers of Karnataka. Designed by passionate engineers.
-      </p>
-      
-      <div className="flex gap-6">
-        <a href="https://agri-compass-v3.vercel.app" target="_blank" rel="noopener noreferrer" className="text-[#F5F0E8]/40 hover:text-[#C9A84C] text-sm font-mono transition-colors">
-          Live App
-        </a>
-        <a href="https://github.com/UtsavMN/Agri-compass_v3.git" target="_blank" rel="noopener noreferrer" className="text-[#F5F0E8]/40 hover:text-[#C9A84C] text-sm font-mono transition-colors">
-          GitHub
-        </a>
+
+        {/* Centre */}
+        <div className="text-center">
+          <p className="text-[#F5F0E8]/22 text-xs font-mono">
+            Built with React · Spring Boot · Three.js · Gemini AI
+          </p>
+          <p className="text-[#F5F0E8]/15 text-xs font-mono mt-1">
+            © 2025 AgriCompass · Empowering Karnataka's Farmers
+          </p>
+        </div>
+
+        {/* Links */}
+        <div className="flex items-center gap-5">
+          {[
+            { label: "Live App", href: "https://agri-compass-v3.vercel.app" },
+            { label: "GitHub", href: "https://github.com/UtsavMN/Agri-compass_v3" },
+          ].map((link) => (
+            <motion.a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ color: "#E5D08F" }}
+              className="text-[#F5F0E8]/25 text-xs font-mono transition-colors"
+            >
+              {link.label}
+            </motion.a>
+          ))}
+        </div>
       </div>
     </div>
   </footer>

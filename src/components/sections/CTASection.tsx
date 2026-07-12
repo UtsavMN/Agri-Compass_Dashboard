@@ -1,49 +1,56 @@
 import { motion } from "framer-motion";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { useAudio } from "../../hooks/useAudio";
 
 export const CTASection = () => {
+  const { playClick, playGlass } = useAudio();
   return (
-    <section className="py-32 bg-[#0A0900] relative overflow-hidden flex flex-col items-center text-center px-6">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#C9A84C]/10 via-[#0A0900] to-[#0A0900] opacity-50" />
+    <section className="relative py-32 bg-[#0A0900] overflow-hidden flex flex-col items-center text-center px-6 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#E5D08F]/5 via-transparent to-transparent opacity-50" />
+      
+      <div className="relative z-10 pointer-events-auto">
       
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
+        transition={LAYOUT_SPRING}
         className="relative z-10 max-w-3xl"
       >
-        <div className="w-16 h-16 mx-auto bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-2xl flex items-center justify-center text-3xl mb-8">
+        <div className="w-16 h-16 mx-auto bg-[#E5D08F]/10 border border-[#E5D08F]/30 rounded-2xl flex items-center justify-center text-3xl mb-8">
           🌾
         </div>
-        <h2 className="font-serif text-5xl md:text-7xl text-[#F5F0E8] mb-6">
-          Experience the future of <span className="text-[#C9A84C]">agriculture</span>.
+        <h2 className="text-display-2 mb-6">
+          Experience the future of <span className="text-[#E5D08F] italic">agriculture</span>.
         </h2>
-        <p className="text-[#F5F0E8]/40 text-lg md:text-xl mb-12 max-w-2xl mx-auto">
+        <p className="text-body-lg prose-elegant mx-auto text-center mb-12">
           Explore the live AgriCompass platform and see how data-driven decisions are empowering farmers across Karnataka.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <motion.a
+        <div className="flex flex-col sm:flex-row gap-6 justify-center mt-4">
+          <a
             href="https://agri-compass-v3.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ scale: 1.05, boxShadow: "0 0 36px rgba(201,168,76,0.45)" }}
-            whileTap={{ scale: 0.97 }}
-            className="px-10 py-5 bg-[#C9A84C] text-[#0A0900] font-semibold text-lg rounded-xl"
+            onClick={playClick}
+            onMouseEnter={playGlass}
+            className="btn-premium"
           >
-            Launch AgriCompass →
-          </motion.a>
-          <motion.a
+            Launch AgriCompass
+          </a>
+          <a
             href="https://github.com/UtsavMN/Agri-compass_v3.git"
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ borderColor: "rgba(201,168,76,0.55)" }}
-            className="px-10 py-5 border border-[#2A2720] text-[#F5F0E8]/60 font-mono rounded-xl hover:text-[#F5F0E8] transition-all"
+            onClick={playClick}
+            onMouseEnter={playGlass}
+            className="btn-ghost"
           >
-            View GitHub Source ↗
-          </motion.a>
+            View GitHub Source
+          </a>
         </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
 };

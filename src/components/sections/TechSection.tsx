@@ -11,21 +11,22 @@ export const TechSection = () => {
   const filtered = techStack.filter((t) => t.category === active);
 
   return (
-    <section id="tech" ref={ref} className="py-32 bg-[#080706]">
+    <section id="tech" ref={ref} className="py-32 bg-transparent">
       <div className="max-w-6xl mx-auto px-6">
+
         <motion.div className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.85 }}>
-          <p className="text-[#C9A84C] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+          <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
             Technology
           </p>
-          <h2 className="font-serif text-5xl md:text-6xl text-[#F5F0E8] mb-4">
+          <h2 className="font-serif text-4xl md:text-5xl text-[#F5F0E8] mb-4">
             Built with{" "}
-            <span className="text-[#C9A84C]">production-grade</span> tools.
+            <span className="text-[#E5D08F]">production-grade</span> tools.
           </h2>
           <p className="text-[#F5F0E8]/30 max-w-lg mx-auto">
-            A production-ready system engineered for scale, reliability, and speed.
+            Not a student prototype. A production system using industry-standard technologies.
           </p>
         </motion.div>
 
@@ -39,8 +40,8 @@ export const TechSection = () => {
               whileTap={{ scale: 0.97 }}
               className={`px-4 py-2 rounded-full text-xs font-mono transition-all duration-300 ${
                 active === cat
-                  ? "bg-[#C9A84C] text-[#0A0900] font-bold"
-                  : "border border-[#2A2720] text-[#F5F0E8]/40 hover:border-[#C9A84C]/30"
+                  ? "bg-[#E5D08F] text-[#0A0900] font-bold"
+                  : "border border-[#2A2720] text-[#F5F0E8]/40 hover:border-[#E5D08F]/30"
               }`}
             >
               {cat}
@@ -60,12 +61,12 @@ export const TechSection = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: i * 0.055, duration: 0.4 }}
                 whileHover={{ y: -5, borderColor: "rgba(201,168,76,0.28)" }}
-                className="bg-[#111008] border border-[#2A2720] rounded-xl p-6 transition-all duration-300 cursor-default"
+                className="premium-card bg-[#0A0603]/30 p-6 transition-all duration-300 cursor-default"
               >
                 <div className="flex justify-between items-start mb-4">
                   <p className="text-[#F5F0E8] font-semibold">{tech.name}</p>
-                  <span className="text-[9px] font-mono bg-[#C9A84C]/10 text-[#C9A84C]
-                                   border border-[#C9A84C]/20 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
+                  <span className="text-[9px] font-mono bg-[#E5D08F]/10 text-[#E5D08F]
+                                   border border-[#E5D08F]/20 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
                     {tech.badge}
                   </span>
                 </div>

@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { useAudio } from "../../hooks/useAudio";
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const { isMuted, toggleMute, playClick } = useAudio();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -14,56 +17,72 @@ export const Navbar = () => {
     <motion.nav
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
+      transition={{ ...LAYOUT_SPRING, delay: 0.5 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-[#0A0900]/90 backdrop-blur-xl border-b border-[#2A2720]"
+          ? "bg-[#0A0900]/95 backdrop-blur-xl border-b border-[#2A2720]"
           : "bg-transparent"
       }`}
-      aria-label="Main Navigation"
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#C9A84C]/15 border border-[#C9A84C]/30 rounded-lg flex items-center justify-center text-sm" aria-hidden="true">
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+
+        {/* Brand — left */}
+        <a href="/" className="flex items-center gap-2 flex-shrink-0">
+          <div className="w-7 h-7 bg-[#E5D08F]/15 border border-[#E5D08F]/30 rounded-lg
+                          flex items-center justify-center text-sm flex-shrink-0">
             🌾
           </div>
-          <span className="text-[#C9A84C] font-semibold font-mono text-sm tracking-wider">
+          <span className="text-[#E5D08F] font-semibold font-mono text-sm tracking-[0.3em]">
             AGRI COMPASS
           </span>
-        </div>
+        </a>
 
-        {/* Links */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Nav links — centre, equal spacing */}
+        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           {[
-            { label: "Features", href: "#features" },
+            { label: "Features",    href: "#features" },
             { label: "Engineering", href: "#engineering" },
-            { label: "Team", href: "#team" },
-            { label: "Vision", href: "#vision" },
+            { label: "Team",        href: "#team" },
+            { label: "Vision",      href: "#vision" },
           ].map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="text-[#F5F0E8]/40 text-sm hover:text-[#F5F0E8] transition-colors font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C] focus-visible:ring-offset-4 focus-visible:ring-offset-[#0A0900] rounded"
-              aria-label={`Navigate to ${item.label} section`}
+              className="text-[#F5F0E8]/45 text-sm font-mono hover:text-[#F5F0E8]/80 transition-colors"
             >
               {item.label}
             </a>
           ))}
         </div>
 
-        {/* CTA */}
-        <motion.a
-          href="https://agri-compass-v3.vercel.app"
-          target="_blank"
-          rel="noopener noreferrer"
-          whileHover={{ scale: 1.04, boxShadow: "0 0 20px rgba(201,168,76,0.3)" }}
-          whileTap={{ scale: 0.97 }}
-          className="px-5 py-2.5 bg-[#C9A84C] text-[#0A0900] text-sm font-semibold rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0900]"
-          aria-label="Open live application in a new tab"
-        >
-          Open App →
-        </motion.a>
+        {/* CTA & Audio Toggle — right */}
+        <div className="flex items-center gap-4">
+          <motion.button
+            onClick={() => {
+              playClick();
+              toggleMute();
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="text-[#F5F0E8]/50 hover:text-[#E5D08F] transition-colors"
+            aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
+          >
+            {isMuted ? "🔇" : "🔊"}
+          </motion.button>
+          
+          <motion.a
+            href="https://agri-compass-v3.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={playClick}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex-shrink-0 px-5 py-2 bg-[#E5D08F] text-[#0A0900] text-xs font-semibold
+                       font-mono rounded-lg transition-all uppercase tracking-[0.3em]"
+          >
+            Open App →
+          </motion.a>
+        </div>
       </div>
     </motion.nav>
   );

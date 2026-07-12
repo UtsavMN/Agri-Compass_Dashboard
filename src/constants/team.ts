@@ -3,7 +3,7 @@ export const team = [
     name: "Utsav MN",
     role: "Team Lead & Full Stack Developer",
     avatar: "U",
-    color: "#C9A84C",
+    color: "#E5D08F",
     linkedin: "https://www.linkedin.com/in/utsavmn06/",
     description:
       "Led backend architecture, Spring Boot API design, Turso schema, Clerk auth integration, Render deployment pipeline, and overall system architecture decisions.",
