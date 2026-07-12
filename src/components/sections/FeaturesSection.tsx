@@ -52,7 +52,7 @@ export const FeaturesSection = () => {
               className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
                 active === i
                   ? "bg-[#E5D08F] text-[#0A0900] font-semibold shadow-[0_0_20px_rgba(201,168,76,0.3)]"
-                  : "bg-white/[0.02] backdrop-blur-md border border-white/10 text-[#F5F0E8]/50 hover:border-[#E5D08F]/30 hover:text-[#F5F0E8]/80"
+                  : "premium-card text-[#F5F0E8]/50 hover:text-[#F5F0E8]/80"
               }`}
               role="tab"
               aria-selected={active === i}

@@ -261,7 +261,7 @@ const AIChatDemo = () => {
             onClick={() => handleQuestion(i)}
             whileHover={{ borderColor: "rgba(201,168,76,0.4)" }}
             aria-label={`Ask AI: ${conv.questionEn}`}
-            className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-xs ${
+            className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
               activeQ === i
                 ? "border-[#E5D08F]/40 bg-[#E5D08F]/8"
                 : "border-[#2A2720] hover:bg-[#191610]"
@@ -502,7 +502,7 @@ const VoiceWaveDemo = () => {
         transition={{ repeat: Infinity, duration: 1.5 }}
         aria-label="Toggle voice navigation demo"
         aria-pressed={active}
-        className="w-16 h-16 bg-[#E5D08F] rounded-full flex items-center justify-center mx-auto text-3xl"
+        className="w-16 h-16 bg-[#E5D08F] rounded-full flex items-center justify-center mx-auto text-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0900] focus-visible:ring-[#E5D08F]"
         style={{ boxShadow: active ? "0 0 40px rgba(201,168,76,0.5)" : "0 0 20px rgba(201,168,76,0.15)" }}
       >
         🎙
@@ -566,7 +566,7 @@ export const SmartFarmSection = () => {
           <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
             Interactive Smart Farm
           </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#F5F0E8] mb-4">
+          <h2 className="text-display-2 mb-4">
             Explore the platform.<br />
             <span className="text-[#E5D08F]">Without logging in.</span>
           </h2>
@@ -584,7 +584,7 @@ export const SmartFarmSection = () => {
               role="tab"
               aria-selected={active === i}
               aria-controls={`panel-${loc.id}`}
-              className={`p-3 rounded-xl text-center transition-all duration-300 ${
+              className={`p-3 rounded-xl text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
                 active === i
                   ? "border border-[#E5D08F]/55 bg-[#E5D08F]/10"
                   : "border border-[#2A2720] hover:border-[#E5D08F]/30 hover:bg-[#E5D08F]/5"
@@ -625,7 +625,7 @@ export const SmartFarmSection = () => {
               <p className="text-[#F5F0E8]/45 text-base leading-relaxed mb-6">
                 {farmLocations[active].description}
               </p>
-              <div className="bg-white/[0.02] backdrop-blur-md border rounded-xl px-4 py-3 mb-6"
+              <div className="premium-card rounded-xl px-4 py-3 mb-6"
                 style={{ borderColor: `${farmLocations[active].color}22` }}>
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] mb-1"
                   style={{ color: `${farmLocations[active].color}88` }}>
@@ -635,9 +635,7 @@ export const SmartFarmSection = () => {
               </div>
               <a href="https://agri-compass-v3.vercel.app" target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[#E5D08F] text-sm
-                           border border-[#E5D08F]/30 px-5 py-2.5 rounded-lg
-                           hover:bg-[#E5D08F]/6 hover:border-[#E5D08F]/55 transition-all">
+                className="inline-flex items-center gap-2 text-[#E5D08F] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] border border-[#E5D08F]/30 px-5 py-2.5 rounded-lg hover:bg-[#E5D08F]/6 hover:border-[#E5D08F]/55 transition-all">
                 Try live →
               </a>
             </div>

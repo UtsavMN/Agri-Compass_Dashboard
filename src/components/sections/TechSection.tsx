@@ -21,7 +21,7 @@ export const TechSection = () => {
           <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
             Technology
           </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#F5F0E8] mb-4">
+          <h2 className="text-display-2 mb-4">
             Built with{" "}
             <span className="text-[#E5D08F]">production-grade</span> tools.
           </h2>

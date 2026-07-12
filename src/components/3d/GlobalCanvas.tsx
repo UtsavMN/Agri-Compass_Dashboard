@@ -12,6 +12,7 @@ import { BackgroundLayers } from "./BackgroundLayers";
 import { FallingLeaves } from "./effects/FallingLeaves";
 import { Butterflies } from "./effects/Butterflies";
 import { Universe } from "./Universe";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 const cameraPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0, 1.5, 6),       // 0: Universe view
@@ -155,6 +156,7 @@ const VolumetricShafts = () => {
 const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
   const { camera } = useThree();
   const { scrollYProgress } = useScroll();
+  const reducedMotion = useReducedMotion();
   
   const smoothProgress = useSpring(scrollYProgress, {
     damping: 30, stiffness: 70, mass: 1.5, restDelta: 0.001
@@ -165,46 +167,52 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
   const introTime = useRef(0);
 
   useEffect(() => {
+    if (reducedMotion) return; // Skip mouse parallax for reduced motion
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set((e.clientX / window.innerWidth) * 2 - 1);
       mouseY.set((e.clientY / window.innerHeight) * 2 - 1);
     };
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, reducedMotion]);
 
   useFrame((_, delta) => {
     const mx = mouseX.get();
     const my = mouseY.get();
 
     if (isIntro) {
-      // Phase 1 & 2: Spline dive from Universe to Farm
-      introTime.current += delta;
-      const t = Math.min(introTime.current / 24.0, 1.0); // 24 seconds to reach farm
-      
-      // Use Quintic Ease In Out for a highly dramatic, cinematic drone dive
-      const easeT = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
-
-      const camPos = cameraPath.getPointAt(easeT);
-      const lookPos = lookAtPath.getPointAt(easeT);
-      
-      camera.position.set(camPos.x + mx * 0.5, camPos.y + my * 0.5, camPos.z);
-      camera.lookAt(lookPos);
+      if (reducedMotion) {
+        // Skip spline dive entirely, snap to Farm
+        camera.position.set(0, -47, -75);
+        camera.lookAt(0, -50, -100);
+      } else {
+        introTime.current += delta;
+        const t = Math.min(introTime.current / 24.0, 1.0);
+        const easeT = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
+        const camPos = cameraPath.getPointAt(easeT);
+        const lookPos = lookAtPath.getPointAt(easeT);
+        camera.position.set(camPos.x + mx * 0.5, camPos.y + my * 0.5, camPos.z);
+        camera.lookAt(lookPos);
+      }
     } else {
-      // Phase 3: Tree Orbiting based on scroll
-      const orbitProgress = smoothProgress.get(); // 0 to 1
-      const angle = orbitProgress * Math.PI * 1.5;
-      const radius = 25 - (orbitProgress * 5); // Starts at 25, ends at 20
-      
-      const targetX = Math.sin(angle) * radius + mx * 2;
-      const targetZ = -100 + Math.cos(angle) * radius;
-      const targetY = -47 + (orbitProgress * 15) + my * 2;
+      if (reducedMotion) {
+        // Static camera at Farm
+        camera.position.lerp(new THREE.Vector3(0, -47, -75), 0.05);
+        camera.lookAt(0, -50, -100);
+      } else {
+        const orbitProgress = smoothProgress.get(); // 0 to 1
+        const angle = orbitProgress * Math.PI * 1.5;
+        const radius = 25 - (orbitProgress * 5);
+        const targetX = Math.sin(angle) * radius + mx * 2;
+        const targetZ = -100 + Math.cos(angle) * radius;
+        const targetY = -47 + (orbitProgress * 15) + my * 2;
 
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.05);
-      camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.05);
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.05);
-      
-      camera.lookAt(0, -50 + (orbitProgress * 10), -100);
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.05);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.05);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.05);
+        
+        camera.lookAt(0, -50 + (orbitProgress * 10), -100);
+      }
     }
   });
 
@@ -214,6 +222,7 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
 export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
   const [dpr, setDpr] = useState(1.5);
   const [isMobile, setIsMobile] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -269,9 +278,9 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           <group position={[0, -50, -100]}>
             <BackgroundLayers />
             <ProceduralTree position={[0, 0, 0]} />
-            <VolumetricShafts />
-            <FallingLeaves count={75} /> 
-            <Butterflies count={3} />
+            {!isMobile && !reducedMotion && <VolumetricShafts />}
+            <FallingLeaves count={isMobile || reducedMotion ? 10 : 75} /> 
+            <Butterflies count={isMobile || reducedMotion ? 0 : 3} />
           </group>
 
           {isMobile ? (

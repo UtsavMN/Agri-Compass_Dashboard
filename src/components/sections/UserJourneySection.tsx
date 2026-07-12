@@ -33,7 +33,7 @@ export const UserJourneySection = () => {
           <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-3">
             Farmer Journey
           </p>
-          <h2 className="font-serif text-4xl text-[#F5F0E8]">
+          <h2 className="text-display-2 mb-6">
             From opening the app to a{" "}
             <span className="text-[#E5D08F]">better harvest.</span>
           </h2>

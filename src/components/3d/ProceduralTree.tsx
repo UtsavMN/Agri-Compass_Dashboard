@@ -1,7 +1,8 @@
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScroll } from "framer-motion";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 // ─── L-SYSTEM GENERATOR (Banyan-Inspired Organic Growth) ────────────────────────
 const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadius = 1.3) => {
@@ -301,6 +302,15 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial) => {
 const KnowledgeFlowSystem = ({ paths }: { paths: THREE.Vector3[][] }) => {
   const particleCount = 400;
   const pointsRef = useRef<THREE.Points>(null);
+  const reducedMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const particleData = useMemo(() => {
     return Array.from({ length: particleCount }).map((_, i) => ({
@@ -356,6 +366,10 @@ const KnowledgeFlowSystem = ({ paths }: { paths: THREE.Vector3[][] }) => {
 
   useFrame((_, delta) => {
     if (!pointsRef.current || paths.length === 0) return;
+    
+    // Stop updating if reduced motion or mobile to save battery/performance
+    if (reducedMotion || isMobile) return;
+
     const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
     const alphas = pointsRef.current.geometry.attributes.alpha.array as Float32Array;
     
@@ -406,6 +420,7 @@ const KnowledgeFlowSystem = ({ paths }: { paths: THREE.Vector3[][] }) => {
 
 export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [number, number, number] }) => {
   const { scrollYProgress } = useScroll();
+  const reducedMotion = useReducedMotion();
   const mainBranchMeshRef = useRef<THREE.InstancedMesh>(null);
   const twigMeshRef = useRef<THREE.InstancedMesh>(null);
   const leafMeshRef1 = useRef<THREE.InstancedMesh>(null);
@@ -616,10 +631,10 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    customUniforms.current.uTime.value = t;
+    customUniforms.current.uTime.value = reducedMotion ? 0 : t; // Freeze time for shader animations if reduced motion
     customUniforms.current.uSeason.value = scrollYProgress.get();
     
-    if (groupRef.current) {
+    if (groupRef.current && !reducedMotion) {
       groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.015;
       groupRef.current.rotation.x = Math.sin(t * 0.4 + 1.0) * 0.01;
     }

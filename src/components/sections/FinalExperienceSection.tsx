@@ -38,7 +38,7 @@ export const FinalExperienceSection = () => {
             <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
               Project Highlights
             </p>
-            <h2 className="font-serif text-4xl text-[#F5F0E8]">
+            <h2 className="text-display-2 mb-4">
               Built for scale. Ready for farmers.
             </h2>
           </motion.div>

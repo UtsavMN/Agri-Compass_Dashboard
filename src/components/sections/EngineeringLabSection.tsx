@@ -21,6 +21,8 @@ const FlowNode = ({
     onHoverStart={playGlass}
     whileHover={{ scale: 1.05 }}
     className="flex flex-col items-center gap-2 cursor-pointer group w-full"
+    aria-pressed={active}
+    aria-label={`Select ${label} node`}
   >
     {/* LARGER nodes — was 56px, now 64px */}
     <div
@@ -141,7 +143,7 @@ const SystemArchitecture = () => {
     <div className="flex flex-col items-center gap-12 w-full">
 
       {/* Flow diagram — horizontal pipeline */}
-      <div className="flex flex-row flex-wrap justify-center items-center gap-4 w-full max-w-5xl">
+      <div className="flex flex-row flex-wrap justify-center items-center gap-4 w-full max-w-5xl" role="group" aria-label="Architecture Flow">
         {architectureFlow.map((node, i) => (
           <div key={node.id} className="flex flex-row items-center">
             <div className="w-28">
@@ -165,8 +167,7 @@ const SystemArchitecture = () => {
         ))}
       </div>
 
-      {/* Detail panel */}
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-3xl" aria-live="polite">
         <AnimatePresence mode="wait">
           {activeNode ? (
             <motion.div
@@ -176,6 +177,8 @@ const SystemArchitecture = () => {
               exit={{ opacity: 0 }}
               transition={LAYOUT_SPRING}
               className="premium-card p-8"
+              role="region"
+              aria-label={`${nodeDetails[activeNode]?.title} details`}
             >
               <h3 className="font-serif text-2xl text-[#F5F0E8] mb-3">
                 {nodeDetails[activeNode]?.title}
@@ -433,11 +436,15 @@ const APIPipeline = () => {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-2 mb-8" role="tablist" aria-label="API Pipelines">
         {pipelines.map((p, i) => (
           <button key={p.name} onClick={() => { playClick(); setActive(i); }}
             onMouseEnter={playGlass}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono transition-all ${
+            role="tab"
+            aria-selected={active === i}
+            aria-controls={`pipeline-panel-${i}`}
+            id={`pipeline-tab-${i}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
               active === i
                 ? "bg-[#E5D08F] text-[#0A0900] font-semibold"
                 : "border border-[#2A2720] text-[#F5F0E8]/40 hover:border-[#E5D08F]/30"
@@ -454,6 +461,9 @@ const APIPipeline = () => {
           exit={{ opacity: 0, y: -16 }}
           transition={LAYOUT_SPRING}
           className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          role="tabpanel"
+          id={`pipeline-panel-${active}`}
+          aria-labelledby={`pipeline-tab-${active}`}
         >
           {/* Flow steps */}
           <div className="space-y-2">
@@ -568,7 +578,7 @@ export const EngineeringLabSection = () => {
           <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
             Engineering Lab
           </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-[#F5F0E8] mb-4">
+          <h2 className="text-display-2 mb-4">
             How it{" "}
             <span className="text-[#E5D08F]">works inside.</span>
           </h2>
@@ -578,15 +588,19 @@ export const EngineeringLabSection = () => {
         </motion.div>
 
         {/* Tab navigation */}
-        <div className="flex flex-wrap gap-2 justify-center mb-12">
+        <div className="flex flex-wrap gap-2 justify-center mb-12" role="tablist" aria-label="Engineering Lab Topics">
           {engTabs.map((tab) => (
             <motion.button key={tab.id} onClick={() => { playClick(); setActiveTab(tab.id); }}
               onHoverStart={playGlass}
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all ${
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`eng-tabpanel-${tab.id}`}
+              id={`eng-tab-${tab.id}`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
                 activeTab === tab.id
                   ? "bg-[#E5D08F] text-[#0A0900] font-semibold shadow-[0_0_15px_rgba(201,168,76,0.3)]"
-                  : "bg-white/[0.02] backdrop-blur-md border border-white/10 text-[#F5F0E8]/40 hover:border-[#E5D08F]/30 font-mono"
+                  : "premium-card text-[#F5F0E8]/40 font-mono"
               }`}>
               <span>{tab.icon}</span>{tab.label}
             </motion.button>
@@ -594,19 +608,24 @@ export const EngineeringLabSection = () => {
         </div>
 
         {/* Tab content */}
-        <AnimatePresence mode="wait">
-          <motion.div key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={LAYOUT_SPRING}>
+        <div aria-live="polite">
+          <AnimatePresence mode="wait">
+            <motion.div key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={LAYOUT_SPRING}
+              role="tabpanel"
+              id={`eng-tabpanel-${activeTab}`}
+              aria-labelledby={`eng-tab-${activeTab}`}>
             {activeTab === "architecture" && <SystemArchitecture />}
             {activeTab === "auth" && <AuthJourney />}
             {activeTab === "database" && <DatabaseExplorer />}
             {activeTab === "apis" && <APIPipeline />}
-            {activeTab === "deployment" && <DeploymentDiagram />}
-          </motion.div>
-        </AnimatePresence>
+              {activeTab === "deployment" && <DeploymentDiagram />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );

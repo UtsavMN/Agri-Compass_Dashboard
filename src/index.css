@@ -54,6 +54,17 @@ body::-webkit-scrollbar {
   text-shadow: 0 0 10px rgba(229, 208, 143, 0.4);
 }
 
+/* ─── ACCESSIBILITY (A11Y) ───────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #E5D08F;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline-color: #E5D08F;
+}
+
 /* ─── EVERY SECTION HAS A BACKGROUND ────────────────────────────────────── */
 /* This is the most critical rule — prevents canvas bleed-through */
 section,
