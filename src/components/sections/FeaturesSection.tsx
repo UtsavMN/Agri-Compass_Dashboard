@@ -1,13 +1,13 @@
-import { useState, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { KeynoteScreenshot } from "../ui/KeynoteScreenshot";
-import { features } from "../../constants/features";
-import { LAYOUT_SPRING, UI_SPRING } from "../../constants/springs";
+import { useState, useRef } from"react";
+import { motion, useInView, AnimatePresence } from"framer-motion";
+import { KeynoteScreenshot } from"../ui/KeynoteScreenshot";
+import { features } from"../../constants/features";
+import { LAYOUT_SPRING, UI_SPRING } from"../../constants/springs";
 
 export const FeaturesSection = () => {
   const [active, setActive] = useState(0);
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-10%" });
+  const inView = useInView(ref, { once: true, margin:"-10%" });
 
   return (
     <section id="features" ref={ref} className="relative py-32 bg-transparent">
@@ -51,8 +51,8 @@ export const FeaturesSection = () => {
               transition={UI_SPRING}
               className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
                 active === i
-                  ? "bg-[#E5D08F] text-[#0A0900] font-semibold shadow-[0_0_20px_rgba(201,168,76,0.3)]"
-                  : "premium-card text-[#F5F0E8]/50 hover:text-[#F5F0E8]/80"
+                  ?"bg-[#E5D08F] text-[#0A0900] font-semibold shadow-[0_0_20px_rgba(201,168,76,0.3)]"
+                  :"premium-card text-[#F5F0E8]/50 hover:text-[#F5F0E8]/80"
               }`}
               role="tab"
               aria-selected={active === i}

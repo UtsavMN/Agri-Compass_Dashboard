@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { LAYOUT_SPRING, UI_SPRING } from "../../constants/springs";
+import { motion } from"framer-motion";
+import { LAYOUT_SPRING, UI_SPRING } from"../../constants/springs";
 
 export const HeroSection = () => (
   <section className="relative h-screen w-full flex flex-col justify-center overflow-hidden bg-transparent pointer-events-none">
@@ -15,10 +15,10 @@ export const HeroSection = () => (
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...LAYOUT_SPRING, delay: 0.4 }}
-          className="flex items-center gap-3 mb-8 bg-[#0A0900]/40 backdrop-blur-md border border-[#E5D08F]/20 px-4 py-2 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
+          className="flex items-center gap-3 mb-8 px-4 py-2 chip-premium"
         >
           <div className="w-2 h-2 rounded-full bg-[#E5D08F] animate-pulse" />
-          <span className="label-super !mb-0 !tracking-[0.2em] !text-[11px]">
+          <span className="!mb-0 !tracking-[0.2em] !text-[11px] font-sans">
             AgriCompass · AI-Powered Agriculture
           </span>
         </motion.div>
@@ -29,10 +29,10 @@ export const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...LAYOUT_SPRING, delay: 0.7 }}
           className="text-display-1 mb-6 drop-shadow-2xl"
-          style={{ textShadow: "0 10px 40px rgba(0,0,0,0.8)" }}
+          style={{ textShadow:"0 10px 40px rgba(0,0,0,0.8)" }}
         >
           Empowering farmers<br />
-          through{" "}
+          through{""}
           <span className="text-[#E5D08F] italic drop-shadow-[0_0_30px_rgba(229,208,143,0.3)]">AI, Data</span>
           <br />&amp; Community.
         </motion.h1>
@@ -43,7 +43,7 @@ export const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...LAYOUT_SPRING, delay: 1.5 }}
           className="text-body-lg prose-elegant mx-auto text-center font-medium drop-shadow-lg"
-          style={{ textShadow: "0 4px 20px rgba(0,0,0,0.9)" }}
+          style={{ textShadow:"0 4px 20px rgba(0,0,0,0.9)" }}
         >
           Crop recommendations, soil intelligence, mandi prices, and a
           Kannada-first AI assistant — built for Karnataka's 12 million farmers.
@@ -71,8 +71,8 @@ export const HeroSection = () => (
       <motion.div 
         className="w-[1px] bg-gradient-to-b from-[#E5D08F] to-transparent origin-top shadow-[0_0_10px_rgba(229,208,143,0.5)]"
         animate={{ scaleY: [0, 1, 0], opacity: [0, 1, 0], y: [0, 20, 40] }}
-        transition={{ repeat: Infinity, duration: 2, ease: "circInOut" }}
-        style={{ height: "60px" }}
+        transition={{ repeat: Infinity, duration: 2, ease:"circInOut" }}
+        style={{ height:"60px" }}
       />
       <p className="text-[#F5F0E8]/40 text-[10px] font-mono tracking-[0.5em] uppercase drop-shadow-md">Scroll</p>
     </div>

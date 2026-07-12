@@ -1,29 +1,29 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
-import { FramerCounter } from "../ui/FramerCounter";
+import { useRef } from"react";
+import { motion, useInView } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
+import { FramerCounter } from"../ui/FramerCounter";
 
 const highlights = [
-  { icon: "🤖", title: "AI Powered", desc: "Gemini AI for contextual farm advice" },
-  { icon: "🌦", title: "Weather Intelligence", desc: "Hyper-local 5-day forecasts" },
-  { icon: "📈", title: "Market Insights", desc: "Live APMC mandi prices daily" },
-  { icon: "👥", title: "Community Platform", desc: "Real-time farmer social network" },
-  { icon: "🎙", title: "Voice Navigation", desc: "Full Kannada voice control" },
-  { icon: "🏛", title: "Government Schemes", desc: "25+ schemes personalised for you" },
-  { icon: "⚡", title: "Real-time Messaging", desc: "WebSocket STOMP direct messaging" },
-  { icon: "🔐", title: "Secure & Private", desc: "JWT auth via Clerk — zero-trust" },
+  { icon:"🤖", title:"AI Powered", desc:"Gemini AI for contextual farm advice" },
+  { icon:"🌦", title:"Weather Intelligence", desc:"Hyper-local 5-day forecasts" },
+  { icon:"📈", title:"Market Insights", desc:"Live APMC mandi prices daily" },
+  { icon:"👥", title:"Community Platform", desc:"Real-time farmer social network" },
+  { icon:"🎙", title:"Voice Navigation", desc:"Full Kannada voice control" },
+  { icon:"🏛", title:"Government Schemes", desc:"25+ schemes personalised for you" },
+  { icon:"⚡", title:"Real-time Messaging", desc:"WebSocket STOMP direct messaging" },
+  { icon:"🔐", title:"Secure & Private", desc:"JWT auth via Clerk — zero-trust" },
 ];
 
 const achievements = [
-  { value: 8,   suffix: "",  label: "Core features" },
-  { value: 15,  suffix: "+", label: "API integrations" },
-  { value: 31,  suffix: "",  label: "Districts covered" },
-  { value: 4,   suffix: "",  label: "Team members" },
+  { value: 8,   suffix:"",  label:"Core features" },
+  { value: 15,  suffix:"+", label:"API integrations" },
+  { value: 31,  suffix:"",  label:"Districts covered" },
+  { value: 4,   suffix:"",  label:"Team members" },
 ];
 
 export const FinalExperienceSection = () => {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin:"-60px" });
 
   return (
     <section ref={ref} className="relative bg-transparent">
@@ -93,18 +93,18 @@ export const FinalExperienceSection = () => {
             <div className="flex flex-wrap gap-4 justify-center">
               {[
                 {
-                  label: "Open Live App",
-                  href: "https://agri-compass-v3.vercel.app",
+                  label:"Open Live App",
+                  href:"https://agri-compass-v3.vercel.app",
                   primary: true,
                 },
                 {
-                  label: "GitHub Repository",
-                  href: "https://github.com/UtsavMN/Agri-compass_v3",
+                  label:"GitHub Repository",
+                  href:"https://github.com/UtsavMN/Agri-compass_v3",
                   primary: false,
                 },
                 {
-                  label: "Team Lead LinkedIn",
-                  href: "https://www.linkedin.com/in/utsavmn06/",
+                  label:"Team Lead LinkedIn",
+                  href:"https://www.linkedin.com/in/utsavmn06/",
                   primary: false,
                 },
               ].map((btn) => (
@@ -116,14 +116,14 @@ export const FinalExperienceSection = () => {
                   whileHover={{
                     scale: 1.05,
                     boxShadow: btn.primary
-                      ? "0 0 36px rgba(201,168,76,0.4)"
-                      : "none",
+                      ?"0 0 36px rgba(201,168,76,0.4)"
+                      :"none",
                   }}
                   whileTap={{ scale: 0.97 }}
                   className={`px-7 py-3.5 rounded-xl text-sm font-semibold transition-all ${
                     btn.primary
-                      ? "bg-[#E5D08F] text-[#0A0900]"
-                      : "border border-[#2A2720] text-[#F5F0E8]/50 hover:border-[#E5D08F]/30 hover:text-[#F5F0E8]"
+                      ?"bg-[#E5D08F] text-[#0A0900]"
+                      :"border border-[#2A2720] text-[#F5F0E8]/50 hover:hover:text-[#F5F0E8]"
                   }`}
                 >
                   {btn.label} →
@@ -179,7 +179,7 @@ export const FinalExperienceSection = () => {
               href="https://agri-compass-v3.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(201,168,76,0.4)" }}
+              whileHover={{ scale: 1.05, boxShadow:"0 0 50px rgba(201,168,76,0.4)" }}
               whileTap={{ scale: 0.97 }}
               className="px-12 py-5 bg-[#E5D08F] text-[#0A0900] font-semibold text-lg rounded-xl transition-all hover:bg-[#F6E6B8] hover:shadow-[0_0_20px_rgba(229,208,143,0.4)]">
               Open AgriCompass →
@@ -188,7 +188,7 @@ export const FinalExperienceSection = () => {
               href="https://github.com/UtsavMN/Agri-compass_v3"
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ borderColor: "rgba(201,168,76,0.45)" }}
+              whileHover={{ borderColor:"rgba(201,168,76,0.45)" }}
               className="px-12 py-5 border border-[#2A2720] text-[#F5F0E8]/50 text-lg
                          rounded-xl hover:text-[#F5F0E8] transition-all">
               View on GitHub

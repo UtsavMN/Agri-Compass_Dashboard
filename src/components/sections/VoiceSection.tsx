@@ -1,22 +1,22 @@
-import { useState, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
-import { useAudio } from "../../hooks/useAudio";
+import { useState, useRef } from"react";
+import { motion, useInView, AnimatePresence } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
+import { useAudio } from"../../hooks/useAudio";
 
 const quickCommands = [
-  { kn: "ಬೆಳಗಳ ಪಟ್ಟಿ ತೋರಿಸು",   en: "Crops Page",        icon: "🌾" },
-  { kn: "ಹವಾಮಾನ ವರದಿ ತೋರಿಸು",    en: "Weather Details",   icon: "🌦" },
-  { kn: "ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳು",      en: "Market Prices",     icon: "📈" },
-  { kn: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",       en: "Gov Schemes",       icon: "🏛" },
-  { kn: "ನನ್ನ ಜಮೀನು",             en: "My Farm Page",      icon: "🌱" },
-  { kn: "ಕೃಷಿ ಮಿತ್ರ ಸಹಾಯ",        en: "Open AI Assistant", icon: "🤖" },
+  { kn:"ಬೆಳಗಳ ಪಟ್ಟಿ ತೋರಿಸು",   en:"Crops Page",        icon:"🌾" },
+  { kn:"ಹವಾಮಾನ ವರದಿ ತೋರಿಸು",    en:"Weather Details",   icon:"🌦" },
+  { kn:"ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳು",      en:"Market Prices",     icon:"📈" },
+  { kn:"ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",       en:"Gov Schemes",       icon:"🏛" },
+  { kn:"ನನ್ನ ಜಮೀನು",             en:"My Farm Page",      icon:"🌱" },
+  { kn:"ಕೃಷಿ ಮಿತ್ರ ಸಹಾಯ",        en:"Open AI Assistant", icon:"🤖" },
 ];
 
 export const VoiceSection = () => {
   const [pulsing, setPulsing] = useState(false);
   const [activeCommand, setActiveCommand] = useState<number | null>(null);
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin:"-80px" });
   const { playClick, playGlass } = useAudio();
 
   const handleMicClick = () => {
@@ -70,7 +70,7 @@ export const VoiceSection = () => {
             {/* Modal header */}
             <div className="bg-[#191610] border-b border-[#2A2720] px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#E5D08F]/15 rounded-lg flex items-center justify-center text-base">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base">
                   🎙
                 </div>
                 <div>
@@ -97,10 +97,7 @@ export const VoiceSection = () => {
                 aria-label="Activate voice assistant"
                 whileTap={{ scale: 0.94 }}
                 animate={pulsing ? {
-                  boxShadow: [
-                    "0 0 0 0 rgba(201,168,76,0.5)",
-                    "0 0 0 24px rgba(201,168,76,0)",
-                    "0 0 0 0 rgba(201,168,76,0)",
+                  boxShadow: ["0 0 0 0 rgba(201,168,76,0.5)","0 0 0 24px rgba(201,168,76,0)","0 0 0 0 rgba(201,168,76,0)",
                   ],
                 } : {}}
                 transition={{ repeat: Infinity, duration: 1.6 }}
@@ -108,8 +105,8 @@ export const VoiceSection = () => {
                 style={{
                   width: 88, height: 88,
                   boxShadow: pulsing
-                    ? "0 0 50px rgba(201,168,76,0.5)"
-                    : "0 0 24px rgba(201,168,76,0.18)",
+                    ?"0 0 50px rgba(201,168,76,0.5)"
+                    :"0 0 24px rgba(201,168,76,0.18)",
                 }}
               >
                 <span className="text-4xl select-none">🎙</span>
@@ -152,10 +149,10 @@ export const VoiceSection = () => {
                 ) : (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <p className="text-[#F5F0E8]/45 text-sm font-serif mb-1">
-                      {pulsing ? "ನಿಮ್ಮ ಧ್ವನಿ ಆಲಿಸಲಾಗುತ್ತಿದೆ..." : "Tap mic to demo"}
+                      {pulsing ?"ನಿಮ್ಮ ಧ್ವನಿ ಆಲಿಸಲಾಗುತ್ತಿದೆ..." :"Tap mic to demo"}
                     </p>
                     <p className="text-[#F5F0E8]/20 text-xs font-mono">
-                      ಉದಾಹರಣೆ: "ಬೆಳೆಗಳ ಪಟ್ಟಿ ತೋರಿಸು"
+                      ಉದಾಹರಣೆ:"ಬೆಳೆಗಳ ಪಟ್ಟಿ ತೋರಿಸು"
                     </p>
                   </motion.div>
                 )}
@@ -168,11 +165,11 @@ export const VoiceSection = () => {
                 <motion.div
                   key={i}
                   animate={activeCommand === i ? {
-                    borderColor: "rgba(201,168,76,0.5)",
-                    backgroundColor: "rgba(201,168,76,0.08)",
+                    borderColor:"rgba(201,168,76,0.5)",
+                    backgroundColor:"rgba(201,168,76,0.08)",
                   } : {
-                    borderColor: "#2A2720",
-                    backgroundColor: "#191610",
+                    borderColor:"#2A2720",
+                    backgroundColor:"#191610",
                   }}
                   className="border rounded-lg p-3 transition-all duration-300"
                 >
@@ -198,10 +195,10 @@ export const VoiceSection = () => {
 
           <div className="space-y-4 mb-10">
             {[
-              { icon: "📱", text: "Works on any Android phone — no special hardware required" },
-              { icon: "🗣", text: "Supports both Kannada (kn-IN) and English speech recognition" },
-              { icon: "🧠", text: "Natural language understanding — not just rigid commands" },
-              { icon: "⚡", text: "Instant navigation to any feature by voice" },
+              { icon:"📱", text:"Works on any Android phone — no special hardware required" },
+              { icon:"🗣", text:"Supports both Kannada (kn-IN) and English speech recognition" },
+              { icon:"🧠", text:"Natural language understanding — not just rigid commands" },
+              { icon:"⚡", text:"Instant navigation to any feature by voice" },
             ].map((point, i) => (
               <motion.div
                 key={i}

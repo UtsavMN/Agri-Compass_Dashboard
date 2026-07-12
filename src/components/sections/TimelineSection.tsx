@@ -1,8 +1,8 @@
-import { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { KeynoteScreenshot } from "../ui/KeynoteScreenshot";
-import { features } from "../../constants/features";
-import { LAYOUT_SPRING } from "../../constants/springs";
+import { useRef } from"react";
+import { motion, useScroll, useTransform, useSpring } from"framer-motion";
+import { KeynoteScreenshot } from"../ui/KeynoteScreenshot";
+import { features } from"../../constants/features";
+import { LAYOUT_SPRING } from"../../constants/springs";
 
 export const TimelineSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -10,7 +10,7 @@ export const TimelineSection = () => {
   // Track scroll progress through the entire timeline container
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start center", "end end"]
+    offset: ["start center","end end"]
   });
 
   // Smooth the scroll progress for a buttery animation
@@ -21,7 +21,7 @@ export const TimelineSection = () => {
   });
 
   // The glowing line height scales with scroll
-  const lineHeight = useTransform(smoothProgress, [0, 1], ["0%", "100%"]);
+  const lineHeight = useTransform(smoothProgress, [0, 1], ["0%","100%"]);
 
   return (
     <section id="features" className="py-40 bg-[#130903] relative z-10">
@@ -64,14 +64,14 @@ export const TimelineSection = () => {
                   {/* Glowing Dot on the Central Line */}
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center justify-center z-20">
                     <div className="w-4 h-4 rounded-full bg-[#130903] border-2 border-[#E5D08F]" />
-                    <div className="absolute w-12 h-12 rounded-full bg-[#E5D08F]/20 blur-md" />
+                    <div className="absolute w-12 h-12 rounded-full blur-md" />
                   </div>
 
                   {/* Text Content Block */}
                   <motion.div 
                     initial={{ opacity: 0, x: isEven ? -50 : 50 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, margin: "-20%" }}
+                    viewport={{ once: true, margin:"-20%" }}
                     transition={LAYOUT_SPRING}
                     className={`w-full md:w-1/2 flex flex-col ${isEven ? 'md:pr-16 md:text-right md:items-end' : 'md:pl-16 md:order-2 md:text-left md:items-start'}`}
                   >
@@ -98,14 +98,14 @@ export const TimelineSection = () => {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.9, y: 50 }}
                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-20%" }}
+                    viewport={{ once: true, margin:"-20%" }}
                     transition={LAYOUT_SPRING}
                     className={`w-full md:w-1/2 ${isEven ? 'md:pl-8' : 'md:order-1 md:pr-8'}`}
                   >
                     <div className="relative">
                       {/* Glow behind screenshot */}
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#E5D08F]/15 via-transparent to-transparent opacity-80 blur-3xl pointer-events-none" />
-                      <KeynoteScreenshot src={feature.screenshot} alt={feature.title} tilt={isEven ? "right" : "left"} />
+                      <KeynoteScreenshot src={feature.screenshot} alt={feature.title} tilt={isEven ?"right" :"left"} />
                     </div>
                   </motion.div>
 

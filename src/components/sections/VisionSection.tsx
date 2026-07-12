@@ -1,6 +1,6 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
+import { useRef } from"react";
+import { motion, useInView } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
 
 
 // ─── FARMER STORY SCROLL ──────────────────────────────────────────────────────
@@ -9,34 +9,34 @@ const FarmerStory = () => {
 
   const decisions = [
     {
-      question: "Which crop should I grow?",
-      before: "Ask the neighbour",
-      after: "AI recommendation with 92% confidence",
-      icon: "🌾",
+      question:"Which crop should I grow?",
+      before:"Ask the neighbour",
+      after:"AI recommendation with 92% confidence",
+      icon:"🌾",
     },
     {
-      question: "Will it rain this week?",
-      before: "Watch the clouds",
-      after: "5-day hyper-local forecast with farming advisory",
-      icon: "🌦",
+      question:"Will it rain this week?",
+      before:"Watch the clouds",
+      after:"5-day hyper-local forecast with farming advisory",
+      icon:"🌦",
     },
     {
-      question: "How much fertilizer do I need?",
-      before: "Guess based on experience",
-      after: "Exact quantities from soil NPK analysis",
-      icon: "🧪",
+      question:"How much fertilizer do I need?",
+      before:"Guess based on experience",
+      after:"Exact quantities from soil NPK analysis",
+      icon:"🧪",
     },
     {
-      question: "Where should I sell my harvest?",
-      before: "Whoever shows up first",
-      after: "Compare mandi prices across Karnataka",
-      icon: "📈",
+      question:"Where should I sell my harvest?",
+      before:"Whoever shows up first",
+      after:"Compare mandi prices across Karnataka",
+      icon:"📈",
     },
     {
-      question: "What government help is available?",
-      before: "Never found out",
-      after: "Personalised scheme matches — PM-KISAN, Raitha Siri, PMFBY",
-      icon: "🏛",
+      question:"What government help is available?",
+      before:"Never found out",
+      after:"Personalised scheme matches — PM-KISAN, Raitha Siri, PMFBY",
+      icon:"🏛",
     },
   ];
 
@@ -47,7 +47,7 @@ const FarmerStory = () => {
           key={i}
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, margin:"-60px" }}
           transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
           className="premium-card p-8 group text-center flex flex-col items-center w-full"
         >
@@ -55,17 +55,16 @@ const FarmerStory = () => {
           <div className="flex flex-col items-center gap-5 w-full">
             <span className="text-4xl flex-shrink-0 drop-shadow-xl">{d.icon}</span>
             <div className="flex-1 min-w-0 w-full flex flex-col items-center">
-              <p className="text-[#F5F0E8]/70 text-sm font-serif mb-3 leading-relaxed">
-                "{d.question}"
+              <p className="text-[#F5F0E8]/70 text-sm font-serif mb-3 leading-relaxed">"{d.question}"
               </p>
               <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg justify-center">
-                <div className="bg-[#1A0F05]/80 border border-[#E06060]/30 rounded-xl px-5 py-4 flex-1 text-center">
+                <div className="border rounded-xl px-5 py-4 flex-1 text-center">
                   <p className="text-[9px] text-[#E06060] font-mono uppercase tracking-[0.3em] mb-2 font-bold">
                     Before
                   </p>
                   <p className="text-[#F5F0E8]/50 text-sm leading-relaxed">{d.before}</p>
                 </div>
-                <div className="bg-[#1A0F05]/80 border border-[#7EC47E]/30 rounded-xl px-5 py-4 flex-1 text-center" style={{ boxShadow: "0 0 30px rgba(126,196,126,0.1) inset" }}>
+                <div className="border rounded-xl px-5 py-4 flex-1 text-center" style={{ boxShadow:"0 0 30px rgba(126,196,126,0.1) inset" }}>
                   <p className="text-[9px] text-[#7EC47E] font-mono uppercase tracking-[0.3em] mb-2 font-bold">
                     With AgriCompass
                   </p>
@@ -83,10 +82,10 @@ const FarmerStory = () => {
 // ─── KNOWLEDGE FLOW ANIMATION ─────────────────────────────────────────────────
 const KnowledgeFlow = () => {
   const nodes = [
-    { label: "Experienced Farmer", icon: "👴", color: "#E5D08F" },
-    { label: "AgriCompass Community", icon: "📱", color: "#7EC47E" },
-    { label: "Young Farmer", icon: "👨🌾", color: "#6090E0" },
-    { label: "Future Generations", icon: "🌱", color: "#E5D08F" },
+    { label:"Experienced Farmer", icon:"👴", color:"#E5D08F" },
+    { label:"AgriCompass Community", icon:"📱", color:"#7EC47E" },
+    { label:"Young Farmer", icon:"👨🌾", color:"#6090E0" },
+    { label:"Future Generations", icon:"🌱", color:"#E5D08F" },
   ];
 
   return (
@@ -118,13 +117,13 @@ const KnowledgeFlow = () => {
               <div className="w-0.5 h-full bg-gradient-to-b from-[#E5D08F]/40 to-[#E5D08F]/10" />
               <motion.div
                 className="absolute w-2 h-2 bg-[#E5D08F] rounded-full"
-                style={{ boxShadow: "0 0 8px #E5D08F" }}
-                animate={{ y: ["0%", "100%"], opacity: [1, 0] }}
+                style={{ boxShadow:"0 0 8px #E5D08F" }}
+                animate={{ y: ["0%","100%"], opacity: [1, 0] }}
                 transition={{
                   repeat: Infinity,
                   duration: 1.5,
                   delay: i * 0.4,
-                  ease: "linear",
+                  ease:"linear",
                 }}
               />
             </div>
@@ -137,18 +136,18 @@ const KnowledgeFlow = () => {
 
 // ─── FUTURE ROADMAP ───────────────────────────────────────────────────────────
 const futureVision = [
-  { icon: "🛰", title: "Satellite Monitoring", description: "Crop health analysis from satellite imagery — detect disease before it spreads" },
-  { icon: "🤖", title: "Predictive AI", description: "ML models that predict optimal harvest windows and price peaks weeks in advance" },
-  { icon: "💧", title: "Smart Irrigation", description: "IoT soil sensors that trigger irrigation automatically based on moisture levels" },
-  { icon: "🚁", title: "Drone Analytics", description: "Aerial crop mapping that identifies yield variations across each farm sector" },
-  { icon: "🦠", title: "Disease Detection", description: "Computer vision that identifies pest infestations from photos taken on any smartphone" },
-  { icon: "🌍", title: "Multi-State Expansion", description: "Extend beyond Karnataka to cover all major agricultural states across India" },
+  { icon:"🛰", title:"Satellite Monitoring", description:"Crop health analysis from satellite imagery — detect disease before it spreads" },
+  { icon:"🤖", title:"Predictive AI", description:"ML models that predict optimal harvest windows and price peaks weeks in advance" },
+  { icon:"💧", title:"Smart Irrigation", description:"IoT soil sensors that trigger irrigation automatically based on moisture levels" },
+  { icon:"🚁", title:"Drone Analytics", description:"Aerial crop mapping that identifies yield variations across each farm sector" },
+  { icon:"🦠", title:"Disease Detection", description:"Computer vision that identifies pest infestations from photos taken on any smartphone" },
+  { icon:"🌍", title:"Multi-State Expansion", description:"Extend beyond Karnataka to cover all major agricultural states across India" },
 ];
 
 // ─── MAIN VISION SECTION ──────────────────────────────────────────────────────
 export const VisionSection = () => {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin:"-60px" });
 
   return (
     <section id="vision" ref={ref} className="relative py-32 bg-transparent">
@@ -231,8 +230,7 @@ export const VisionSection = () => {
           <p className="label-super">
             Our Vision
           </p>
-          <blockquote className="text-heading-1 text-[#F5F0E8]/80 max-w-3xl mx-auto italic leading-relaxed">
-            "Empowering every farmer with intelligent decision-making —
+          <blockquote className="text-heading-1 text-[#F5F0E8]/80 max-w-3xl mx-auto italic leading-relaxed">"Empowering every farmer with intelligent decision-making —
             through AI, data, and community knowledge."
           </blockquote>
         </motion.div>
@@ -253,9 +251,9 @@ export const VisionSection = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { icon: "🇮🇳", title: "Kannada First", desc: "Full UI translation. Every label, button, and message available in Kannada.", color: "#E5D08F" },
-              { icon: "🗣", title: "Voice Navigation", desc: "Farmers who find typing difficult can speak to navigate the entire app.", color: "#7EC47E" },
-              { icon: "📱", title: "Any Device", desc: "Designed for ₹8,000 Android phones with 2G connectivity in rural areas.", color: "#6090E0" },
+              { icon:"🇮🇳", title:"Kannada First", desc:"Full UI translation. Every label, button, and message available in Kannada.", color:"#E5D08F" },
+              { icon:"🗣", title:"Voice Navigation", desc:"Farmers who find typing difficult can speak to navigate the entire app.", color:"#7EC47E" },
+              { icon:"📱", title:"Any Device", desc:"Designed for ₹8,000 Android phones with 2G connectivity in rural areas.", color:"#6090E0" },
             ].map((item, i) => (
               <motion.div key={i}
                 initial={{ opacity: 0, y: 24 }}
@@ -296,7 +294,7 @@ export const VisionSection = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ ...LAYOUT_SPRING, delay: i * 0.08 }}
-                className="premium-card bg-[#0A0603]/30 p-7 overflow-hidden transition-all duration-300 pointer-events-auto">
+                className="premium-card p-7 overflow-hidden transition-all duration-300 pointer-events-auto">
                 <div className="text-2xl mb-4">{item.icon}</div>
                 <p className="text-heading-1 !text-xl mb-2 text-[#E5D08F]/90">{item.title}</p>
                 <p className="text-body-md flex-grow">{item.description}</p>

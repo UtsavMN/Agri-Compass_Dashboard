@@ -1,13 +1,13 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
-import { FramerCounter } from "../ui/FramerCounter";
+import { useRef } from"react";
+import { motion, useInView } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
+import { FramerCounter } from"../ui/FramerCounter";
 
 const stats = [
-  { value: 8,  suffix: "",  label: "Core features for complete farm intelligence" },
-  { value: 15, suffix: "+", label: "Live API integrations powering real-time data" },
-  { value: 31, suffix: "",  label: "Karnataka districts fully supported" },
-  { value: 2,  suffix: "",  label: "Languages — Kannada and English" },
+  { value: 8,  suffix:"",  label:"Core features for complete farm intelligence" },
+  { value: 15, suffix:"+", label:"Live API integrations powering real-time data" },
+  { value: 31, suffix:"",  label:"Karnataka districts fully supported" },
+  { value: 2,  suffix:"",  label:"Languages — Kannada and English" },
 ];
 
 export const StatsSection = () => {

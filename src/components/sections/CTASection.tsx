@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
-import { useAudio } from "../../hooks/useAudio";
+import { motion } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
+import { useAudio } from"../../hooks/useAudio";
 
 export const CTASection = () => {
   const { playClick, playGlass } = useAudio();
@@ -17,7 +17,7 @@ export const CTASection = () => {
         transition={LAYOUT_SPRING}
         className="relative z-10 max-w-3xl"
       >
-        <div className="w-16 h-16 mx-auto bg-[#E5D08F]/10 border border-[#E5D08F]/30 rounded-2xl flex items-center justify-center text-3xl mb-8">
+        <div className="w-16 h-16 mx-auto border rounded-2xl flex items-center justify-center text-3xl mb-8">
           🌾
         </div>
         <h2 className="text-display-2 mb-6">

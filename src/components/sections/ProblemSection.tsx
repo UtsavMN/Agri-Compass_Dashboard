@@ -1,17 +1,17 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
+import { useRef } from"react";
+import { motion, useInView } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
 
 const problems = [
-  { stat: "58%", label: "of Karnataka farmers rely solely on neighbours for crop decisions", color: "#E06060" },
-  { stat: "₹1.5L Cr", label: "lost annually across India to poor planning and post-harvest losses", color: "#E06060" },
-  { stat: "3 in 5", label: "farmers never check mandi prices before selling their harvest", color: "#E5D08F" },
-  { stat: "72%", label: "of government agricultural schemes go unclaimed every year", color: "#E5D08F" },
+  { stat:"58%", label:"of Karnataka farmers rely solely on neighbours for crop decisions", color:"#E06060" },
+  { stat:"₹1.5L Cr", label:"lost annually across India to poor planning and post-harvest losses", color:"#E06060" },
+  { stat:"3 in 5", label:"farmers never check mandi prices before selling their harvest", color:"#E5D08F" },
+  { stat:"72%", label:"of government agricultural schemes go unclaimed every year", color:"#E5D08F" },
 ];
 
 export const ProblemSection = () => {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin:"-80px" });
 
   return (
     <section id="problem" ref={ref} className="relative py-32 px-6 bg-transparent">
@@ -42,7 +42,7 @@ export const ProblemSection = () => {
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: true, margin:"-50px" }}
               transition={{ ...LAYOUT_SPRING, delay: i * 0.14 }}
               className="premium-card p-12 flex flex-col items-center text-center group w-full"
             >
@@ -50,7 +50,7 @@ export const ProblemSection = () => {
                 className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-6 text-xs font-mono font-bold transition-transform duration-500 group-hover:scale-110"
                 style={{ background: `${item.color}18`, color: item.color, border: `1px solid ${item.color}30` }}
               >
-                {String(i + 1).padStart(2, "0")}
+                {String(i + 1).padStart(2,"0")}
               </div>
 
               <div className="text-display-2 mb-4 font-semibold transition-colors duration-500 tabular-nums" style={{ color: item.color }}>

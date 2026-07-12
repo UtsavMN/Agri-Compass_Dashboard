@@ -1,12 +1,12 @@
-import { useState, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { techStack } from "../../constants/techStack";
+import { useState, useRef } from"react";
+import { motion, useInView, AnimatePresence } from"framer-motion";
+import { techStack } from"../../constants/techStack";
 
 export const TechSection = () => {
-  const categories = ["Frontend", "Backend", "Auth", "Database", "Hosting", "AI & APIs"];
+  const categories = ["Frontend","Backend","Auth","Database","Hosting","AI & APIs"];
   const [active, setActive] = useState("Frontend");
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin:"-80px" });
 
   const filtered = techStack.filter((t) => t.category === active);
 
@@ -22,7 +22,7 @@ export const TechSection = () => {
             Technology
           </p>
           <h2 className="text-display-2 mb-4">
-            Built with{" "}
+            Built with{""}
             <span className="text-[#E5D08F]">production-grade</span> tools.
           </h2>
           <p className="text-[#F5F0E8]/30 max-w-lg mx-auto">
@@ -40,8 +40,8 @@ export const TechSection = () => {
               whileTap={{ scale: 0.97 }}
               className={`px-4 py-2 rounded-full text-xs font-mono transition-all duration-300 ${
                 active === cat
-                  ? "bg-[#E5D08F] text-[#0A0900] font-bold"
-                  : "border border-[#2A2720] text-[#F5F0E8]/40 hover:border-[#E5D08F]/30"
+                  ?"bg-[#E5D08F] text-[#0A0900] font-bold"
+                  :"border border-[#2A2720] text-[#F5F0E8]/40 hover:"
               }`}
             >
               {cat}
@@ -60,13 +60,13 @@ export const TechSection = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: i * 0.055, duration: 0.4 }}
-                whileHover={{ y: -5, borderColor: "rgba(201,168,76,0.28)" }}
-                className="premium-card bg-[#0A0603]/30 p-6 transition-all duration-300 cursor-default"
+                whileHover={{ y: -5, borderColor:"rgba(201,168,76,0.28)" }}
+                className="premium-card p-6 transition-all duration-300 cursor-default"
               >
                 <div className="flex justify-between items-start mb-4">
                   <p className="text-[#F5F0E8] font-semibold">{tech.name}</p>
-                  <span className="text-[9px] font-mono bg-[#E5D08F]/10 text-[#E5D08F]
-                                   border border-[#E5D08F]/20 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
+                  <span className="text-[9px] font-mono text-[#E5D08F]
+                                   border px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
                     {tech.badge}
                   </span>
                 </div>

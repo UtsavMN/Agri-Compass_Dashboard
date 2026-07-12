@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
-import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { useState, useEffect } from"react";
+import { motion, AnimatePresence } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
+import { useReducedMotion } from"../../hooks/useReducedMotion";
 
 // Compass loading animation
 const CompassLoader = ({ progress }: { progress: number }) => (
@@ -11,7 +11,7 @@ const CompassLoader = ({ progress }: { progress: number }) => (
   >
     <motion.div
       animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+      transition={{ repeat: Infinity, duration: 2.5, ease:"linear" }}
       className="text-7xl mb-8 select-none"
     >
       🧭
@@ -19,7 +19,7 @@ const CompassLoader = ({ progress }: { progress: number }) => (
     <div className="w-52 h-0.5 bg-[#2A2720] rounded-full overflow-hidden mb-5">
       <motion.div
         className="h-full bg-[#E5D08F] rounded-full"
-        initial={{ width: "0%" }}
+        initial={{ width:"0%" }}
         animate={{ width: `${Math.min(progress, 100)}%` }}
         transition={LAYOUT_SPRING}
       />
@@ -38,8 +38,7 @@ const DataCard = ({
     initial={{ opacity: 0, scale: 0.85, y: 20 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
     transition={{ ...LAYOUT_SPRING, delay }}
-    className="bg-transparent/90 backdrop-blur-xl border border-[#2A2720]
-               rounded-xl px-5 py-3.5 premium-card"
+    className="rounded-xl px-5 py-3.5 premium-card"
     style={{ boxShadow: `0 0 24px ${color}25` }}
   >
     <p className="text-[9px] font-mono text-[#F5F0E8]/30 uppercase tracking-[0.3em] mb-1">
@@ -52,11 +51,11 @@ const DataCard = ({
 );
 
 const phases = [
-  { text: "India · 170 million hectares of farmland", sub: "The world's second-largest agricultural economy" },
-  { text: "Karnataka · 12 million farmers", sub: "Decisions made daily without data" },
-  { text: "Every acre deserves intelligent decisions", sub: "Traditional knowledge is disappearing" },
-  { text: "AI scanning soil, weather, markets", sub: "Real-time intelligence for every farm" },
-  { text: "AgriCompass — empowering farmers through data", sub: "Built by engineers who believe farming can be smarter" },
+  { text:"India · 170 million hectares of farmland", sub:"The world's second-largest agricultural economy" },
+  { text:"Karnataka · 12 million farmers", sub:"Decisions made daily without data" },
+  { text:"Every acre deserves intelligent decisions", sub:"Traditional knowledge is disappearing" },
+  { text:"AI scanning soil, weather, markets", sub:"Real-time intelligence for every farm" },
+  { text:"AgriCompass — empowering farmers through data", sub:"Built by engineers who believe farming can be smarter" },
 ];
 
 export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
@@ -111,7 +110,7 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
       </AnimatePresence>
 
       {/* Phase text overlay */}
-      <div className="fixed inset-0 z-20 pointer-events-none flex flex-col items-center justify-center px-6 bg-[#080706]/40 backdrop-blur-[2px]">
+      <div className="fixed inset-0 z-20 pointer-events-none flex flex-col items-center justify-center px-6">
         <AnimatePresence mode="wait">
           {loaded && phases[phase] && (
             <motion.div key={phase} className="text-center"
@@ -148,10 +147,7 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onComplete}
-            className="fixed top-6 right-6 z-50 text-[#F5F0E8]/30 text-xs font-mono
-                       border border-[#2A2720] px-4 py-2.5 rounded-lg
-                       hover:text-[#F5F0E8]/60 hover:border-[#E5D08F]/30
-                       transition-all backdrop-blur-sm bg-[#1A0F05]/50 pointer-events-auto"
+            className="fixed top-6 right-6 z-50 text-xs font-mono pointer-events-auto btn-ghost"
           >
             Skip intro →
           </motion.button>

@@ -1,11 +1,11 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { LAYOUT_SPRING } from "../../constants/springs";
-import { team } from "../../constants/team";
+import { useRef } from"react";
+import { motion, useInView } from"framer-motion";
+import { LAYOUT_SPRING } from"../../constants/springs";
+import { team } from"../../constants/team";
 
 export const TeamSection = () => {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin:"-80px" });
 
   return (
     <section id="team" ref={ref} className="relative py-32 bg-transparent z-10">
@@ -34,7 +34,7 @@ export const TeamSection = () => {
               key={member.name}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: true, margin:"-50px" }}
               transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
               className="premium-card p-10 text-center flex flex-col items-center group w-full"
             >
@@ -67,7 +67,7 @@ export const TeamSection = () => {
                 {member.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="text-[10px] font-mono px-3 py-1.5 rounded-full border border-[#2A2720] text-[#F5F0E8]/40 bg-[#1A0F05]/50"
+                    className="text-[10px] font-mono px-3 py-1.5 rounded-full border border-[#2A2720] text-[#F5F0E8]/40"
                   >
                     {tag}
                   </span>
