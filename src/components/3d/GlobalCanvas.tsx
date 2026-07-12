@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useScroll, useSpring } from "framer-motion";
 import * as THREE from "three";
@@ -36,21 +36,21 @@ const FogRig = ({ isIntro }: { isIntro: boolean }) => {
     const fog = scene.fog as THREE.Fog;
     if (fog) {
       if (isIntro) {
-        // Intro cloud break (at approx 20s mark of 24s intro)
+        // Intro cloud break
         introTime.current += delta;
         const p = introTime.current / 24.0;
         const cloudFactor = Math.max(0, 1.0 - Math.abs(p - 0.8) * 10.0);
-        const baseColor = new THREE.Color("#0A0900");
+        const baseColor = new THREE.Color("#050400"); // Deep cinematic dark
         const cloudColor = new THREE.Color("#dce6ff");
         fog.color.lerpColors(baseColor, cloudColor, Math.pow(cloudFactor, 2.0));
         fog.near = THREE.MathUtils.lerp(15, 0, cloudFactor);
         fog.far = THREE.MathUtils.lerp(60, 2, cloudFactor);
       } else {
-        // Normal farm fog
-        const baseColor = new THREE.Color("#0A0900");
-        fog.color.copy(baseColor);
-        fog.near = 15;
-        fog.far = 60;
+        // Normal farm fog (Cinematic Gold Hour Atmospheric Fog)
+        const baseColor = new THREE.Color("#1a1500"); // Richer atmospheric fog
+        fog.color.lerp(baseColor, 0.05);
+        fog.near = 10;
+        fog.far = 70;
       }
     }
   });
@@ -68,46 +68,88 @@ const LightRig = ({ isIntro }: { isIntro: boolean }) => {
   useFrame(() => {
     const sunLight = scene.getObjectByName('sunLight') as THREE.DirectionalLight;
     const ambientLight = scene.getObjectByName('ambientLight') as THREE.AmbientLight;
+    const hemiLight = scene.getObjectByName('hemiLight') as THREE.HemisphereLight;
     
-    if (sunLight && ambientLight) {
+    if (sunLight && ambientLight && hemiLight) {
       if (isIntro) {
         sunLight.intensity = 1.5;
         sunLight.color.setHex(0xFFF5D0);
         ambientLight.intensity = 0.2;
+        hemiLight.intensity = 0.1;
       } else {
         // Farm phase -> mapped to scroll (season 0.0 to 1.0)
         const season = smoothProgress.get();
         
-        const springColor = new THREE.Color(0xFFF5D0);
-        const summerColor = new THREE.Color(0xFFEAA7);
-        const autumnColor = new THREE.Color(0xFFB142);
-        const winterColor = new THREE.Color(0xD1D8E0);
+        // Golden hour dominant lighting
+        const springColor = new THREE.Color(0xFFE5B4); // Peachy gold
+        const summerColor = new THREE.Color(0xFFD700); // Pure gold
+        const autumnColor = new THREE.Color(0xFF8C00); // Deep orange
+        const winterColor = new THREE.Color(0xD1D8E0); // Cool gray
         
         let targetColor = springColor;
-        let intensity = 2.0;
+        let intensity = 2.5;
         
         if (season < 0.33) {
           targetColor = springColor.clone().lerp(summerColor, season / 0.33);
-          intensity = THREE.MathUtils.lerp(2.0, 2.5, season / 0.33);
+          intensity = THREE.MathUtils.lerp(2.5, 3.0, season / 0.33);
         } else if (season < 0.66) {
           targetColor = summerColor.clone().lerp(autumnColor, (season - 0.33) / 0.33);
-          intensity = THREE.MathUtils.lerp(2.5, 1.5, (season - 0.33) / 0.33);
+          intensity = THREE.MathUtils.lerp(3.0, 2.0, (season - 0.33) / 0.33);
         } else {
           targetColor = autumnColor.clone().lerp(winterColor, (season - 0.66) / 0.34);
-          intensity = THREE.MathUtils.lerp(1.5, 1.0, (season - 0.66) / 0.34);
+          intensity = THREE.MathUtils.lerp(2.0, 1.2, (season - 0.66) / 0.34);
         }
         
         sunLight.color.copy(targetColor);
         sunLight.intensity = intensity;
-        ambientLight.intensity = intensity * 0.15;
+        
+        // Soft Bounce Lighting & Ambient
+        ambientLight.color.copy(targetColor);
+        ambientLight.intensity = intensity * 0.05;
+        
+        hemiLight.color.copy(targetColor);
+        hemiLight.intensity = intensity * 0.15;
 
-        // Move sun lower based on season
-        sunLight.position.set(10, THREE.MathUtils.lerp(20, 2, season), 10);
+        // Move sun lower for dramatic golden hour shadows
+        sunLight.position.set(15, THREE.MathUtils.lerp(15, 2, season), 10);
       }
     }
   });
 
   return null;
+};
+
+// ─── VOLUMETRIC SHAFTS ───────────────────────────────────────────────────────
+const VolumetricShafts = () => {
+  const shaderMat = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+    `,
+    fragmentShader: `
+      varying vec2 vUv;
+      void main() {
+        float falloff = smoothstep(1.0, 0.0, vUv.y) * smoothstep(0.0, 0.2, vUv.x) * smoothstep(1.0, 0.8, vUv.x);
+        gl_FragColor = vec4(1.0, 0.7, 0.2, falloff * 0.15); // Golden shafts
+      }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  }), []);
+
+  return (
+    <group position={[8, 0, -5]} rotation={[0, 0, Math.PI / 6]}>
+      <mesh material={shaderMat} position={[0, 15, 0]}>
+         <planeGeometry args={[25, 40]} />
+      </mesh>
+      <mesh material={shaderMat} position={[0, 15, 5]} rotation={[0, Math.PI / 4, 0]}>
+         <planeGeometry args={[25, 40]} />
+      </mesh>
+    </group>
+  );
 };
 
 const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
@@ -140,8 +182,8 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
       introTime.current += delta;
       const t = Math.min(introTime.current / 24.0, 1.0); // 24 seconds to reach farm
       
-      // Use Ease In Out for cinematic feel
-      const easeT = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      // Use Quintic Ease In Out for a highly dramatic, cinematic drone dive
+      const easeT = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
 
       const camPos = cameraPath.getPointAt(easeT);
       const lookPos = lookAtPath.getPointAt(easeT);
@@ -189,12 +231,29 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
       >
         <Suspense fallback={null}>
           <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
-          <fog attach="fog" args={["#0A0900", 15, 60]} />
+          <fog attach="fog" args={["#1a1500", 10, 70]} />
           <FogRig isIntro={!introComplete} />
           <LightRig isIntro={!introComplete} />
           
-          <ambientLight name="ambientLight" intensity={0.2} color="#ffffff" />
-          <directionalLight name="sunLight" position={[10, 20, 10]} intensity={1.5} color="#FFF5D0" castShadow />
+          <ambientLight name="ambientLight" intensity={0.1} color="#ffffff" />
+          <hemisphereLight name="hemiLight" groundColor="#050400" color="#ffffff" intensity={0.1} />
+          
+          {/* Enhanced Golden Hour Sun */}
+          <directionalLight 
+            name="sunLight" 
+            position={[15, 15, 10]} 
+            intensity={2.5} 
+            color="#FFD700" 
+            castShadow 
+            shadow-mapSize={[2048, 2048]}
+            shadow-camera-near={0.5}
+            shadow-camera-far={100}
+            shadow-camera-left={-30}
+            shadow-camera-right={30}
+            shadow-camera-top={30}
+            shadow-camera-bottom={-30}
+            shadow-bias={-0.001}
+          />
           
           <CameraRig isIntro={!introComplete} />
           
@@ -210,8 +269,9 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           <group position={[0, -50, -100]}>
             <BackgroundLayers />
             <ProceduralTree position={[0, 0, 0]} />
-            <FallingLeaves count={75} /> {/* Drastically reduced count for perf/quality */}
-            <Butterflies count={12} />
+            <VolumetricShafts />
+            <FallingLeaves count={75} /> 
+            <Butterflies count={3} />
           </group>
 
           {isMobile ? (
@@ -229,18 +289,18 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
               <Bloom 
                 luminanceThreshold={0.2} 
                 luminanceSmoothing={0.9} 
-                intensity={1.2} 
+                intensity={1.4} 
                 mipmapBlur 
               />
               {/* Depth of field only when we are orbiting tree */}
               {introComplete ? (
                 <DepthOfField 
-                  focusDistance={0.02} 
-                  focalLength={0.15} 
-                  bokehScale={2} 
+                  focusDistance={0.015} 
+                  focalLength={0.1} 
+                  bokehScale={3} 
                 />
               ) : <></>}
-              <Vignette eskil={false} offset={0.1} darkness={1.1} />
+              <Vignette eskil={false} offset={0.1} darkness={1.2} />
             </EffectComposer>
           )}
         </Suspense>

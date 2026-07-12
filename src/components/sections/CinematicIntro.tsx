@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LAYOUT_SPRING } from "../../constants/springs";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
-import { useDeviceCapability } from "../../hooks/useDeviceCapability";
 
 // Compass loading animation
 const CompassLoader = ({ progress }: { progress: number }) => (
@@ -66,14 +65,14 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
   const [loadProgress, setLoadProgress] = useState(0);
   const [showSkip, setShowSkip] = useState(false);
   const prefersReduced = useReducedMotion();
-  const { isMobile } = useDeviceCapability();
 
-  // Skip intro entirely on mobile or if reduced motion is requested
+
+  // Skip intro entirely if reduced motion is requested
   useEffect(() => {
-    if (isMobile || prefersReduced) {
+    if (prefersReduced) {
       setTimeout(() => onComplete(), 500);
     }
-  }, [isMobile, prefersReduced, onComplete]);
+  }, [prefersReduced, onComplete]);
 
   // Fake progress bar
   useEffect(() => {
@@ -103,7 +102,7 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
     return () => timers.forEach(clearTimeout);
   }, [loaded, onComplete]);
 
-  if (isMobile || prefersReduced) return null;
+  if (prefersReduced) return null;
 
   return (
     <>

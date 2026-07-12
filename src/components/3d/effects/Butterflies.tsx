@@ -7,7 +7,7 @@ const STATE_SEEKING = 1;
 const STATE_RESTING = 2;
 const STATE_FLEEING = 3;
 
-export const Butterflies = ({ count = 10 }: { count?: number }) => {
+export const Butterflies = ({ count = 3 }: { count?: number }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   
   const customUniforms = useRef({ uTime: { value: 0 } });
@@ -23,9 +23,9 @@ export const Butterflies = ({ count = 10 }: { count?: number }) => {
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
-      p[i3] = (Math.random() - 0.5) * 15;
-      p[i3 + 1] = Math.random() * 10;
-      p[i3 + 2] = (Math.random() - 0.5) * 15;
+      p[i3] = (Math.random() - 0.5) * 12;
+      p[i3 + 1] = Math.random() * 8;
+      p[i3 + 2] = -5.0 - Math.random() * 10; // Keep behind UI (z < -5)
 
       v[i3] = (Math.random() - 0.5);
       v[i3 + 1] = (Math.random() - 0.5);
@@ -130,15 +130,15 @@ export const Butterflies = ({ count = 10 }: { count?: number }) => {
           if (Math.random() > 0.3) {
             state[i] = STATE_SEEKING;
             timer[i] = 5.0 + Math.random() * 5.0; 
-            target[i3] = (Math.random() - 0.5) * 12; 
-            target[i3 + 1] = 4 + Math.random() * 8;  
-            target[i3 + 2] = (Math.random() - 0.5) * 12; 
+            target[i3] = (Math.random() - 0.5) * 10; 
+            target[i3 + 1] = 2 + Math.random() * 6;  
+            target[i3 + 2] = -5.0 - Math.random() * 5; // Behind UI
           } else {
             state[i] = STATE_FLEEING;
             timer[i] = 10.0;
-            target[i3] = (Math.random() - 0.5) * 5; 
-            target[i3 + 1] = 0 + Math.random() * 5;
-            target[i3 + 2] = 15; 
+            target[i3] = (Math.random() - 0.5) * 15; 
+            target[i3 + 1] = 10 + Math.random() * 5;
+            target[i3 + 2] = -15; // Fly deep into background
           }
         } else if (state[i] === STATE_SEEKING) {
           state[i] = STATE_WANDERING;
@@ -151,7 +151,7 @@ export const Butterflies = ({ count = 10 }: { count?: number }) => {
           timer[i] = 5.0 + Math.random() * 5.0;
           pos[i3] = (Math.random() - 0.5) * 15;
           pos[i3 + 1] = 10 + Math.random() * 10;
-          pos[i3 + 2] = -10 - Math.random() * 10;
+          pos[i3 + 2] = -15 - Math.random() * 5; // Stay behind
         }
       }
 
@@ -169,11 +169,11 @@ export const Butterflies = ({ count = 10 }: { count?: number }) => {
         tempDir.set(cx, cy, cz).normalize();
         
         if (tempVec.y < 0) tempDir.y += 1.0;
-        if (tempVec.y > 15) tempDir.y -= 1.0;
-        if (tempVec.x < -10) tempDir.x += 1.0;
-        if (tempVec.x > 10) tempDir.x -= 1.0;
-        if (tempVec.z < -10) tempDir.z += 1.0;
-        if (tempVec.z > 10) tempDir.z -= 1.0;
+        if (tempVec.y > 10) tempDir.y -= 1.0;
+        if (tempVec.x < -8) tempDir.x += 1.0;
+        if (tempVec.x > 8) tempDir.x -= 1.0;
+        if (tempVec.z > -2) tempDir.z -= 2.0; // Pushed firmly behind UI
+        if (tempVec.z < -15) tempDir.z += 1.0;
         
         tempDir.normalize();
 

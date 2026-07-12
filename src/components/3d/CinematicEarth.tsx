@@ -105,7 +105,7 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     return mat;
   }, [colorMap, normalMap, specularMap]);
 
-  // Atmosphere shader (Cinematic Edge Glow + Scattering approximation)
+  // Advanced Atmosphere shader (Rayleigh + Mie scattering approximation)
   const atmosMat = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader: `
@@ -125,15 +125,21 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
           float fresnel = dot(viewDir, vNormal);
           fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
           
-          // Outer edge is more intense, inner edge fades
-          float intensity = pow(fresnel, 3.5) * 1.5;
-          float coreIntensity = pow(fresnel, 1.5) * 0.3;
+          // Outer edge intense blue, inner edge fades to transparent
+          float edgeGlow = pow(fresnel, 4.0) * 2.5;
+          float coreGlow = pow(fresnel, 2.0) * 0.4;
           
-          vec3 atmosColor = vec3(0.3, 0.6, 1.0); // Light blue
-          vec3 coreColor = vec3(0.1, 0.3, 0.8);  // Deep blue
+          // Sunset/Sunrise reddish scatter on the terminator
+          vec3 lightDir = normalize(vec3(10.0, 20.0, 10.0));
+          float nDotL = dot(vNormal, lightDir);
+          float terminator = smoothstep(0.0, 0.3, nDotL) - smoothstep(0.4, 0.7, nDotL);
           
-          vec3 finalColor = mix(coreColor, atmosColor, fresnel);
-          gl_FragColor = vec4(finalColor, intensity + coreIntensity);
+          vec3 atmosColor = vec3(0.2, 0.5, 1.0); // Vibrant Azure
+          vec3 sunsetColor = vec3(0.9, 0.4, 0.2); // Warm orange/red
+          
+          vec3 finalColor = mix(atmosColor, sunsetColor, terminator * 0.6);
+          
+          gl_FragColor = vec4(finalColor, edgeGlow + coreGlow);
         }
       `,
       transparent: true,
@@ -159,14 +165,27 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     earthGroupRef.current.rotation.y += delta * 0.02;
     earthGroupRef.current.rotation.x = 0.1; // Axial tilt
 
-    // Clouds rotate slightly faster than Earth
+    // Clouds rotate slightly faster than Earth for parallax
     if (cloudRef.current) {
       cloudRef.current.rotation.y += delta * 0.025;
     }
     
-    // Pin pulsing effect
+    // Pin pulsing radar effect
     if (pinRef.current) {
-      pinRef.current.scale.setScalar(1.0 + Math.sin(t * 4) * 0.2);
+      // 0 to 1 loop every 2 seconds
+      const pulse = (t % 2.0) / 2.0;
+      
+      const rings = pinRef.current.children.filter(c => c.name === 'ring');
+      rings.forEach((ring, i) => {
+        const offsetPulse = ((pulse + i * 0.5) % 1.0);
+        ring.scale.setScalar(1.0 + offsetPulse * 4.0);
+        ((ring as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = (1.0 - offsetPulse) * 0.8;
+      });
+      
+      const core = pinRef.current.children.find(c => c.name === 'core');
+      if (core) {
+         core.scale.setScalar(1.0 + Math.sin(t * 8) * 0.2);
+      }
     }
   });
 
@@ -203,16 +222,31 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
         <sphereGeometry args={[earthRadius + 0.3, 64, 64]} />
       </mesh>
       
-      {/* Karnataka Pin */}
-      <mesh position={[kX, kY, kZ]} ref={pinRef}>
-        <sphereGeometry args={[0.03, 16, 16]} />
-        <meshBasicMaterial color="#FFD700" transparent opacity={0.9} />
-        {/* Glow Ring */}
-        <mesh>
-          <ringGeometry args={[0.04, 0.06, 32]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={0.5} side={THREE.DoubleSide} />
+      {/* Karnataka Cinematic Beacon */}
+      <group position={[kX, kY, kZ]} ref={pinRef}>
+        {/* Core Dot */}
+        <mesh name="core">
+          <sphereGeometry args={[0.015, 16, 16]} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={1.0} />
         </mesh>
-      </mesh>
+        
+        {/* Radar Rings */}
+        <mesh name="ring">
+          <ringGeometry args={[0.02, 0.025, 32]} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={0.8} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
+        <mesh name="ring">
+          <ringGeometry args={[0.02, 0.025, 32]} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={0.4} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
+        
+        {/* Vertical Light Shaft */}
+        <mesh position={[0, 0, 0]} rotation={[Math.PI/2, 0, 0]}>
+           <cylinderGeometry args={[0.005, 0.03, 1.0, 16]} />
+           <meshBasicMaterial color="#FFD700" transparent opacity={0.3} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
+           {/* Translate up so origin is at bottom */}
+        </mesh>
+      </group>
     </group>
   );
 };

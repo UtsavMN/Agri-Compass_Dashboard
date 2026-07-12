@@ -3,12 +3,14 @@ import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScroll } from "framer-motion";
 
-// ─── L-SYSTEM GENERATOR ────────────────────────────────────────────────────────
-const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadius = 0.8) => {
+// ─── L-SYSTEM GENERATOR (Banyan-Inspired Organic Growth) ────────────────────────
+const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadius = 1.3) => {
   const mainBranchMatrices: THREE.Matrix4[] = [];
   const twigMatrices: THREE.Matrix4[] = [];
-  const leafMatrices: THREE.Matrix4[] = [];
+  const leafMatrices1: THREE.Matrix4[] = [];
+  const leafMatrices2: THREE.Matrix4[] = [];
   const blossomMatrices: THREE.Matrix4[] = [];
+  const flowPaths: THREE.Vector3[][] = [];
 
   const buildBranch = (
     start: THREE.Vector3,
@@ -16,35 +18,54 @@ const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadiu
     len: number,
     rad: number,
     depth: number,
-    isTrunk: boolean
+    isTrunk: boolean,
+    currentPath: THREE.Vector3[]
   ) => {
-    const end = start.clone().add(dir.clone().multiplyScalar(len));
+    // Branch curvature: break segment into multiple pieces for organic flow
+    const segments = isTrunk ? 4 : (depth > 2 ? 3 : 2);
+    let currentStart = start.clone();
+    let currentDir = dir.clone();
+    
+    // Asymmetrical wind/growth bias
+    const windBias = new THREE.Vector3(0.08, 0, 0.04);
 
-    const matrix = new THREE.Matrix4();
-    const up = new THREE.Vector3(0, 1, 0);
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(up, dir);
+    for(let s = 0; s < segments; s++) {
+      const segLen = len / segments;
+      const end = currentStart.clone().add(currentDir.clone().multiplyScalar(segLen));
+      const midPoint = currentStart.clone().add(currentDir.clone().multiplyScalar(segLen / 2));
+      
+      const matrix = new THREE.Matrix4();
+      const up = new THREE.Vector3(0, 1, 0);
+      const quaternion = new THREE.Quaternion().setFromUnitVectors(up, currentDir);
+      
+      // Taper rad slightly along segments for organic thickness
+      const segRad = rad * (1 - (s / segments) * 0.15);
+      matrix.compose(midPoint, quaternion, new THREE.Vector3(segRad, segLen, segRad));
+      
+      if (depth > 2) mainBranchMatrices.push(matrix);
+      else twigMatrices.push(matrix);
 
-    // Position at midpoint since cylinder origin is center
-    const midPoint = start.clone().add(dir.clone().multiplyScalar(len / 2));
+      currentPath.push(midPoint.clone());
+      currentStart = end;
 
-    matrix.compose(
-      midPoint,
-      quaternion,
-      new THREE.Vector3(rad, len, rad)
-    );
-
-    if (depth > 2) {
-      mainBranchMatrices.push(matrix);
-    } else {
-      twigMatrices.push(matrix);
+      // Curve dynamically based on depth
+      currentDir.add(windBias).normalize();
+      if (depth < 4) {
+        currentDir.lerp(new THREE.Vector3(0, 1, 0), 0.08).normalize(); // Reaching for sun
+      }
     }
+    
+    const end = currentStart;
 
-    // Add Leaves at the ends
+    // Leaves
     if (depth <= 2) {
-      const numLeaves = depth === 0 ? 9 : 5;
+      // Natural clustering with gaps
+      const numLeaves = depth === 0 ? 14 : 7;
       for (let i = 0; i < numLeaves; i++) {
+        // Create visible gaps: occasionally skip dense clusters to allow sunlight
+        if (depth === 1 && Math.random() > 0.8) continue;
+
         const leafMat = new THREE.Matrix4();
-        // Random spherical direction, slightly more organic clustering
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
         const leafDir = new THREE.Vector3(
@@ -52,82 +73,64 @@ const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadiu
           Math.sin(phi) * Math.sin(theta),
           Math.cos(phi)
         );
-        // Slightly bias upwards and outwards
-        leafDir.y = Math.abs(leafDir.y) + 0.3;
+        leafDir.y = Math.abs(leafDir.y) + 0.2; // Bias slightly upwards
         leafDir.normalize();
 
         const leafQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), leafDir);
-        const randomYRot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
-        const randomZRot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), (Math.random() - 0.5) * 0.5);
-        leafQ.multiply(randomYRot).multiply(randomZRot);
-
-        // Clustered positioning
-        const offset = new THREE.Vector3((Math.random() - 0.5) * rad * 6, (Math.random() - 0.2) * rad * 6, (Math.random() - 0.5) * rad * 6);
+        leafQ.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2));
+        
+        // Spread leaves in a wider, more natural cluster volume
+        const spread = rad * (10.0 + Math.random() * 4.0);
+        const offset = new THREE.Vector3((Math.random() - 0.5) * spread, (Math.random() - 0.2) * spread * 0.8, (Math.random() - 0.5) * spread);
         const leafPos = end.clone().add(offset);
-        const leafScale = 1.0 + Math.random() * 1.2;
-
+        
+        // Age/Size variation
+        const leafScale = 0.7 + Math.random() * 1.6;
         leafMat.compose(leafPos, leafQ, new THREE.Vector3(leafScale, leafScale, leafScale));
-        leafMatrices.push(leafMat);
+        
+        // Distribute among multiple meshes for color/shape variation
+        if (Math.random() > 0.5) leafMatrices1.push(leafMat);
+        else leafMatrices2.push(leafMat);
       }
-      
-      // Add Blossoms
-      const numBlossoms = depth === 0 ? 3 : 1;
-      for (let i = 0; i < numBlossoms; i++) {
-        if (Math.random() > 0.5) continue;
-        const blossomMat = new THREE.Matrix4();
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const bDir = new THREE.Vector3(
-          Math.sin(phi) * Math.cos(theta),
-          Math.sin(phi) * Math.sin(theta),
-          Math.cos(phi)
-        ).normalize();
-
-        const bQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), bDir);
-        const bPos = end.clone().add(bDir.multiplyScalar(rad * 1.2));
-        const bScale = 0.3 + Math.random() * 0.25;
-
-        blossomMat.compose(bPos, bQ, new THREE.Vector3(bScale, bScale, bScale));
-        blossomMatrices.push(blossomMat);
-      }
+      flowPaths.push([...currentPath, end.clone()]);
     }
 
     if (depth === 0) return;
 
-    // More organic branching: trunks split less often but thicker, branches split more
-    const numBranches = isTrunk ? (Math.random() > 0.2 ? 3 : 2) : (Math.random() > 0.3 ? 2 : 3);
-
+    // Banyan branching: Heavy primary splits, dense secondary hierarchy
+    const numBranches = isTrunk ? (Math.random() > 0.1 ? 3 : 2) : (Math.random() > 0.3 ? 2 : 3);
     for (let i = 0; i < numBranches; i++) {
-      const spreadAngle = (Math.PI / 4) * (0.5 + Math.random() * 0.8);
-      const rotAngle = (Math.PI * 2 * i) / numBranches + (Math.random() * 1.0 - 0.5);
+      const spreadAngle = isTrunk ? (Math.PI / 3) * (0.4 + Math.random() * 0.6) : (Math.PI / 4) * (0.6 + Math.random() * 0.8);
+      
+      // Asymmetrical branching rotation
+      const rotAngle = (Math.PI * 2 * i) / numBranches + (Math.random() * 1.5 - 0.75);
 
-      const newDir = dir.clone();
+      const newDir = currentDir.clone();
       const tangent = new THREE.Vector3(1, 0, 0);
       if (Math.abs(newDir.dot(tangent)) > 0.9) tangent.set(0, 0, 1);
       tangent.cross(newDir).normalize();
 
       newDir.applyAxisAngle(tangent, spreadAngle);
-      newDir.applyAxisAngle(dir, rotAngle);
+      newDir.applyAxisAngle(currentDir, rotAngle);
 
-      // Phototropism
-      const upwardPull = depth < 3 ? 0.4 : 0.15;
-      newDir.lerp(new THREE.Vector3(0, 1, 0), upwardPull).normalize();
-
-      // Gravity droop on heavier lower branches
-      if (!isTrunk && depth > 2 && newDir.y < 0.6) {
-        newDir.lerp(new THREE.Vector3(0, -1, 0), 0.25).normalize();
+      // Gravity droop on heavier lower branches (Banyan style curvature)
+      if (!isTrunk && depth > 2 && newDir.y < 0.7) {
+        newDir.lerp(new THREE.Vector3(0, -1, 0), 0.35).normalize();
+      } else {
+        newDir.lerp(new THREE.Vector3(0, 1, 0), 0.15).normalize(); // Reach up
       }
 
-      const nextLen = len * (0.65 + Math.random() * 0.2);
-      const nextRad = rad * (0.55 + Math.random() * 0.15);
+      const nextLen = len * (0.7 + Math.random() * 0.25);
+      const nextRad = rad * (0.65 + Math.random() * 0.1);
 
-      buildBranch(end, newDir, nextLen, nextRad, depth - 1, false);
+      // Recursive clone
+      buildBranch(end, newDir, nextLen, nextRad, depth - 1, false, [...currentPath]);
     }
   };
 
-  buildBranch(new THREE.Vector3(0, -2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true);
+  buildBranch(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true, []);
 
-  return { mainBranchMatrices, twigMatrices, leafMatrices, blossomMatrices };
+  return { mainBranchMatrices, twigMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths };
 };
 
 // ─── GENERATE TREE BASE (ROOTS & ROCKS) ─────────────────────────────────────────
@@ -136,18 +139,18 @@ const generateTreeBase = () => {
   const rockMatrices: THREE.Matrix4[] = [];
   const grassMatrices: THREE.Matrix4[] = [];
 
-  // Generate Roots
-  const numRoots = 7;
+  // Generate Organic Tangled Roots (10x Upgrade)
+  const numRoots = 14;
   for (let i = 0; i < numRoots; i++) {
     const angle = (Math.PI * 2 * i) / numRoots + (Math.random() * 0.5);
-    const dir = new THREE.Vector3(Math.cos(angle), -0.5, Math.sin(angle)).normalize();
+    const dir = new THREE.Vector3(Math.cos(angle), -0.2, Math.sin(angle)).normalize();
     
-    let currentPos = new THREE.Vector3(0, -1.8, 0); // Start slightly below trunk base
+    let currentPos = new THREE.Vector3(0, -1.2, 0); // Start higher on the trunk for a nice root flare
     let currentDir = dir.clone();
-    let rad = 0.9;
-    let len = 1.5;
+    let rad = 0.95;
+    let len = 1.2;
 
-    for (let j = 0; j < 4; j++) {
+    for (let j = 0; j < 6; j++) {
       const nextPos = currentPos.clone().add(currentDir.clone().multiplyScalar(len));
       const midPoint = currentPos.clone().add(currentDir.clone().multiplyScalar(len / 2));
       
@@ -157,15 +160,26 @@ const generateTreeBase = () => {
       
       matrix.compose(midPoint, quaternion, new THREE.Vector3(rad, len, rad));
       rootMatrices.push(matrix);
+      
+      // Spawn Secondary Rootlets occasionally
+      if (Math.random() > 0.5 && j > 1 && j < 5) {
+         const rootletDir = currentDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() > 0.5 ? 1 : -1) * 0.8).normalize();
+         rootletDir.y -= 0.5;
+         rootletDir.normalize();
+         const rMid = currentPos.clone().add(rootletDir.clone().multiplyScalar(len * 0.4));
+         const rMat = new THREE.Matrix4();
+         rMat.compose(rMid, new THREE.Quaternion().setFromUnitVectors(up, rootletDir), new THREE.Vector3(rad * 0.4, len * 0.8, rad * 0.4));
+         rootMatrices.push(rMat);
+      }
 
       currentPos = nextPos;
-      // Roots go deeper and spread out
-      currentDir.lerp(new THREE.Vector3(currentDir.x, -1, currentDir.z), 0.4).normalize();
-      currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 0.5);
-      rad *= 0.6;
-      len *= 0.9;
+      // Roots go deeper and spread out dramatically
+      currentDir.lerp(new THREE.Vector3(currentDir.x * 1.5, -2, currentDir.z * 1.5), 0.5).normalize();
+      currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 0.8);
+      rad *= 0.65;
+      len *= 0.85;
       
-      if (currentPos.y < -4) break;
+      if (currentPos.y < -5.5) break;
     }
   }
 
@@ -283,13 +297,119 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial) => {
   };
 };
 
+// ─── KNOWLEDGE FLOW SYSTEM ──────────────────────────────────────────────────────
+const KnowledgeFlowSystem = ({ paths }: { paths: THREE.Vector3[][] }) => {
+  const particleCount = 400;
+  const pointsRef = useRef<THREE.Points>(null);
+  
+  const particleData = useMemo(() => {
+    return Array.from({ length: particleCount }).map((_, i) => ({
+      pathIndex: Math.floor(Math.random() * paths.length),
+      progress: Math.random(),
+      speed: 0.08 + Math.random() * 0.15,
+      pauseTimer: 0,
+      id: i
+    }));
+  }, [paths, particleCount]);
+
+  const geo = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const alphas = new Float32Array(particleCount);
+    for(let i=0; i<particleCount; i++) {
+      positions[i*3] = 0; positions[i*3+1] = -100; positions[i*3+2] = 0;
+      alphas[i] = 0;
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+    return geometry;
+  }, [particleCount]);
+
+  const mat = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `
+        attribute float alpha;
+        varying float vAlpha;
+        void main() {
+          vAlpha = alpha;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = (18.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying float vAlpha;
+        void main() {
+          vec2 coord = gl_PointCoord - vec2(0.5);
+          float dist = length(coord);
+          if(dist > 0.5) discard;
+          float glow = pow(1.0 - (dist * 2.0), 1.5);
+          gl_FragColor = vec4(1.0, 0.85, 0.3, glow * vAlpha * 0.8);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+  }, []);
+
+  useFrame((_, delta) => {
+    if (!pointsRef.current || paths.length === 0) return;
+    const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
+    const alphas = pointsRef.current.geometry.attributes.alpha.array as Float32Array;
+    
+    particleData.forEach((p, i) => {
+      if (p.pauseTimer > 0) {
+         p.pauseTimer -= delta;
+      } else {
+         if (Math.random() < 0.005) p.pauseTimer = 0.5 + Math.random();
+         else p.progress += p.speed * delta * 0.15;
+      }
+      
+      if (p.progress >= 1.0) {
+        p.progress = 0;
+        p.pathIndex = Math.floor(Math.random() * paths.length);
+      }
+      
+      const path = paths[p.pathIndex];
+      if (!path || path.length < 2) return;
+      
+      const fIdx = p.progress * (path.length - 1);
+      const iIdx = Math.floor(fIdx);
+      const t = fIdx - iIdx;
+      
+      const p1 = path[iIdx];
+      const p2 = path[Math.min(iIdx + 1, path.length - 1)];
+      
+      const x = p1.x + (p2.x - p1.x) * t;
+      const y = p1.y + (p2.y - p1.y) * t;
+      const z = p1.z + (p2.z - p1.z) * t;
+      
+      const noise = Math.sin(p.progress * 30.0 + p.id) * 0.15;
+      
+      positions[i*3] = x + noise;
+      positions[i*3+1] = y;
+      positions[i*3+2] = z + noise;
+      
+      alphas[i] = Math.sin(p.progress * Math.PI) * (p.pauseTimer > 0 ? 1.0 : 0.8);
+    });
+    pointsRef.current.geometry.attributes.position.needsUpdate = true;
+    pointsRef.current.geometry.attributes.alpha.needsUpdate = true;
+  });
+
+  return <points ref={pointsRef} args={[geo, mat]} />;
+};
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
+
 
 export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [number, number, number] }) => {
   const { scrollYProgress } = useScroll();
   const mainBranchMeshRef = useRef<THREE.InstancedMesh>(null);
   const twigMeshRef = useRef<THREE.InstancedMesh>(null);
-  const leafMeshRef = useRef<THREE.InstancedMesh>(null);
+  const leafMeshRef1 = useRef<THREE.InstancedMesh>(null);
+  const leafMeshRef2 = useRef<THREE.InstancedMesh>(null);
   const blossomMeshRef = useRef<THREE.InstancedMesh>(null);
   const rootMeshRef = useRef<THREE.InstancedMesh>(null);
   const rockMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -297,7 +417,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   
   const customUniforms = useRef({ uTime: { value: 0 }, uSeason: { value: 0 } });
 
-  const { mainBranchMatrices, twigMatrices, leafMatrices, blossomMatrices } = useMemo(() => generateInstancedTree(7, 4.0, 0.8), []);
+  const { mainBranchMatrices, twigMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths } = useMemo(() => generateInstancedTree(7, 4.0, 1.3), []);
   const { rootMatrices, rockMatrices } = useMemo(() => generateTreeBase(), []);
 
   const leafTexture = useLoader(THREE.TextureLoader, '/textures/realistic_leaf.png');
@@ -308,27 +428,14 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   const twigGeo = useMemo(() => new THREE.CylinderGeometry(0.3, 1.0, 1, 5, 1), []);
   const rootGeo = useMemo(() => new THREE.CylinderGeometry(0.65, 1.0, 1, 7, 1), []);
   const rockGeo = useMemo(() => new THREE.IcosahedronGeometry(1, 1), []);
-  const soilGeo = useMemo(() => {
-    const geo = new THREE.CylinderGeometry(6, 6.5, 1.5, 32, 4);
-    const pos = geo.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
-      if (v.y > 0) {
-        // Create a mound shape
-        const dist = Math.sqrt(v.x * v.x + v.z * v.z);
-        v.y += Math.cos((dist / 6) * Math.PI * 0.5) * 1.5;
-        // Add noise to soil
-        v.y += (Math.random() - 0.5) * 0.3;
-      }
-      pos.setXYZ(i, v.x, v.y, v.z);
-    }
-    geo.computeVertexNormals();
-    return geo;
-  }, []);
-  
-  const leafGeo = useMemo(() => {
+  const leafGeo1 = useMemo(() => {
     const geo = new THREE.PlaneGeometry(1.5, 1.5);
     geo.translate(0, 0.75, 0); 
+    return geo;
+  }, []);
+  const leafGeo2 = useMemo(() => {
+    const geo = new THREE.PlaneGeometry(1.1, 1.7); // Narrower, longer leaf for variation
+    geo.translate(0, 0.85, 0); 
     return geo;
   }, []);
 
@@ -354,10 +461,6 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
 
   const rockMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: 0x4a4a4a, roughness: 0.8, metalness: 0.1
-  }), []);
-
-  const soilMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: 0x2d1f14, roughness: 1.0, metalness: 0.0
   }), []);
 
   const blossomMat = useMemo(() => {
@@ -471,9 +574,13 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       twigMatrices.forEach((mat, i) => twigMeshRef.current!.setMatrixAt(i, mat));
       twigMeshRef.current.instanceMatrix.needsUpdate = true;
     }
-    if (leafMeshRef.current) {
-      leafMatrices.forEach((mat, i) => leafMeshRef.current!.setMatrixAt(i, mat));
-      leafMeshRef.current.instanceMatrix.needsUpdate = true;
+    if (leafMeshRef1.current) {
+      leafMatrices1.forEach((mat, i) => leafMeshRef1.current!.setMatrixAt(i, mat));
+      leafMeshRef1.current.instanceMatrix.needsUpdate = true;
+    }
+    if (leafMeshRef2.current) {
+      leafMatrices2.forEach((mat, i) => leafMeshRef2.current!.setMatrixAt(i, mat));
+      leafMeshRef2.current.instanceMatrix.needsUpdate = true;
     }
     if (blossomMeshRef.current) {
       blossomMatrices.forEach((mat, i) => blossomMeshRef.current!.setMatrixAt(i, mat));
@@ -487,7 +594,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       rockMatrices.forEach((mat, i) => rockMeshRef.current!.setMatrixAt(i, mat));
       rockMeshRef.current.instanceMatrix.needsUpdate = true;
     }
-  }, [mainBranchMatrices, twigMatrices, leafMatrices, blossomMatrices, rootMatrices, rockMatrices]);
+  }, [mainBranchMatrices, twigMatrices, leafMatrices1, leafMatrices2, blossomMatrices, rootMatrices, rockMatrices]);
 
   // Memory Cleanup
   useEffect(() => {
@@ -496,17 +603,16 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       twigGeo.dispose();
       rootGeo.dispose();
       rockGeo.dispose();
-      soilGeo.dispose();
-      leafGeo.dispose();
+      leafGeo1.dispose();
+      leafGeo2.dispose();
       blossomGeo.dispose();
       
       mainBarkMat.dispose();
       rockMat.dispose();
-      soilMat.dispose();
       blossomMat.dispose();
       leafMat.dispose();
     };
-  }, [mainBranchGeo, twigGeo, rootGeo, rockGeo, soilGeo, leafGeo, blossomGeo, mainBarkMat, rockMat, soilMat, blossomMat, leafMat]);
+  }, [mainBranchGeo, twigGeo, rootGeo, rockGeo, leafGeo1, leafGeo2, blossomGeo, mainBarkMat, rockMat, blossomMat, leafMat]);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
@@ -521,9 +627,6 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
 
   return (
     <group ref={groupRef} position={position}>
-      {/* Base / Soil */}
-      <mesh geometry={soilGeo} material={soilMat} position={[0, -2.8, 0]} receiveShadow />
-
       {/* Roots */}
       <instancedMesh ref={rootMeshRef} args={[rootGeo, mainBarkMat, rootMatrices.length]} castShadow receiveShadow />
 
@@ -536,11 +639,15 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       {/* Twigs */}
       <instancedMesh ref={twigMeshRef} args={[twigGeo, mainBarkMat, twigMatrices.length]} castShadow receiveShadow />
       
-      {/* Leaves */}
-      <instancedMesh ref={leafMeshRef} args={[leafGeo, leafMat, leafMatrices.length]} castShadow receiveShadow />
+      {/* Leaves (Multiple Meshes for Variation) */}
+      <instancedMesh ref={leafMeshRef1} args={[leafGeo1, leafMat, leafMatrices1.length]} castShadow receiveShadow />
+      <instancedMesh ref={leafMeshRef2} args={[leafGeo2, leafMat, leafMatrices2.length]} castShadow receiveShadow />
       
       {/* Blossoms */}
       <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} receiveShadow />
+
+      {/* Knowledge Flow Particles */}
+      <KnowledgeFlowSystem paths={flowPaths} />
     </group>
   );
 };
