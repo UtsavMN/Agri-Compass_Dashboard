@@ -368,23 +368,31 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
   useFrame((_, delta) => {
     if (!pointsRef.current || paths.length === 0) return;
     
-    // Stop updating if reduced motion or mobile to save battery/performance
-    if (reducedMotion || isMobile) return;
+    // Stop updating if mobile to save battery/performance
+    if (isMobile && !reducedMotion) return;
 
     const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
     const alphas = pointsRef.current.geometry.attributes.alpha.array as Float32Array;
     
     particleData.forEach((p, i) => {
-      if (p.pauseTimer > 0) {
-         p.pauseTimer -= delta;
+      if (reducedMotion) {
+        // Distribute them evenly to form static glowing paths
+        p.pathIndex = i % paths.length;
+        p.progress = (i / particleCount) * paths.length;
+        p.progress = p.progress % 1.0;
+        p.pauseTimer = 1.0; // keep alpha bright
       } else {
-         if (Math.random() < 0.005) p.pauseTimer = 0.5 + Math.random();
-         else p.progress += p.speed * delta * 0.15;
-      }
-      
-      if (p.progress >= 1.0) {
-        p.progress = 0;
-        p.pathIndex = Math.floor(Math.random() * paths.length);
+        if (p.pauseTimer > 0) {
+           p.pauseTimer -= delta;
+        } else {
+           if (Math.random() < 0.005) p.pauseTimer = 0.5 + Math.random();
+           else p.progress += p.speed * delta * 0.15;
+        }
+        
+        if (p.progress >= 1.0) {
+          p.progress = 0;
+          p.pathIndex = Math.floor(Math.random() * paths.length);
+        }
       }
       
       const path = paths[p.pathIndex];
@@ -401,13 +409,15 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
       const y = p1.y + (p2.y - p1.y) * t;
       const z = p1.z + (p2.z - p1.z) * t;
       
-      const noise = Math.sin(p.progress * 30.0 + p.id) * 0.15;
+      const noise = reducedMotion ? 0 : Math.sin(p.progress * 30.0 + p.id) * 0.15;
       
       positions[i*3] = x + noise;
       positions[i*3+1] = y;
       positions[i*3+2] = z + noise;
       
-      alphas[i] = Math.sin(p.progress * Math.PI) * (p.pauseTimer > 0 ? 1.0 : 0.8);
+      alphas[i] = reducedMotion 
+        ? 0.5 + Math.sin(i * 13.0) * 0.3 // static varied brightness
+        : Math.sin(p.progress * Math.PI) * (p.pauseTimer > 0 ? 1.0 : 0.8);
     });
     pointsRef.current.geometry.attributes.position.needsUpdate = true;
     pointsRef.current.geometry.attributes.alpha.needsUpdate = true;

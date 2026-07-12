@@ -1,6 +1,7 @@
 import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useReducedMotion } from "../../../hooks/useReducedMotion";
 
 const STATE_WANDERING = 0;
 const STATE_SEEKING = 1;
@@ -9,6 +10,7 @@ const STATE_FLEEING = 3;
 
 export const Butterflies = ({ count = 3 }: { count?: number }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const reducedMotion = useReducedMotion();
   
   const customUniforms = useRef({ uTime: { value: 0 } });
 
@@ -119,7 +121,7 @@ export const Butterflies = ({ count = 3 }: { count?: number }) => {
     
     const t = sceneState.clock.getElapsedTime();
     customUniforms.current.uTime.value = t;
-    const dt = Math.min(delta, 0.05);
+    const dt = Math.min(delta, 0.05) * (reducedMotion ? 0.05 : 1.0);
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;

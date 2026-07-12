@@ -11,6 +11,7 @@ import { ProceduralTree } from "./ProceduralTree";
 import { BackgroundLayers } from "./BackgroundLayers";
 import { FallingLeaves } from "./effects/FallingLeaves";
 import { Butterflies } from "./effects/Butterflies";
+import { Fireflies } from "./effects/Fireflies";
 import { Universe } from "./Universe";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useQualityStore } from "../../store/useQualityStore";
@@ -273,7 +274,8 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
             <ProceduralTree position={[0, 0, 0]} />
             {settings.volumetricFog && !reducedMotion ? <VolumetricShafts /> : <></>}
             <FallingLeaves count={reducedMotion ? 10 : Math.floor(75 * settings.leafDensity)} /> 
-            <Butterflies count={reducedMotion ? 0 : settings.butterflyCount} />
+            <Butterflies count={settings.butterflyCount} />
+            <Fireflies count={settings.particleCount / 2} />
           </group>
 
           <EffectComposer multisampling={0}>
