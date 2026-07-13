@@ -1,7 +1,7 @@
 import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useScroll } from "framer-motion";
+import { useScroll, useSpring } from "framer-motion";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useQualityStore } from "../../store/useQualityStore";
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
