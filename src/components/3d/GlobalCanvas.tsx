@@ -1,4 +1,4 @@
-import { useEffect, useRef, Suspense, useMemo } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useScroll, useSpring } from "framer-motion";
 import * as THREE from "three";
@@ -12,6 +12,7 @@ import { BackgroundLayers } from "./BackgroundLayers";
 import { FallingLeaves } from "./effects/FallingLeaves";
 import { Butterflies } from "./effects/Butterflies";
 import { Fireflies } from "./effects/Fireflies";
+import { VolumetricShafts } from "./effects/VolumetricShafts";
 import { Universe } from "./Universe";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useQualityStore } from "../../store/useQualityStore";
@@ -122,38 +123,6 @@ const LightRig = ({ isIntro }: { isIntro: boolean }) => {
   return null;
 };
 
-// ─── VOLUMETRIC SHAFTS ───────────────────────────────────────────────────────
-const VolumetricShafts = () => {
-  const shaderMat = useMemo(() => new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 } },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: `
-      varying vec2 vUv;
-      void main() {
-        float falloff = smoothstep(1.0, 0.0, vUv.y) * smoothstep(0.0, 0.2, vUv.x) * smoothstep(1.0, 0.8, vUv.x);
-        gl_FragColor = vec4(1.0, 0.7, 0.2, falloff * 0.15); // Golden shafts
-      }
-    `,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide
-  }), []);
-
-  return (
-    <group position={[8, 0, -5]} rotation={[0, 0, Math.PI / 6]}>
-      <mesh material={shaderMat} position={[0, 15, 0]}>
-         <planeGeometry args={[25, 40]} />
-      </mesh>
-      <mesh material={shaderMat} position={[0, 15, 5]} rotation={[0, Math.PI / 4, 0]}>
-         <planeGeometry args={[25, 40]} />
-      </mesh>
-    </group>
-  );
-};
 
 const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
   const { camera } = useThree();
@@ -161,7 +130,7 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
   const reducedMotion = useReducedMotion();
   
   const smoothProgress = useSpring(scrollYProgress, {
-    damping: 30, stiffness: 70, mass: 1.5, restDelta: 0.001
+    damping: 50, stiffness: 50, mass: 2.5, restDelta: 0.001
   });
 
   const mouseX = useSpring(0, { damping: 40, stiffness: 100, mass: 1 });
@@ -178,9 +147,10 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY, reducedMotion]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const mx = mouseX.get();
     const my = mouseY.get();
+    const time = state.clock.getElapsedTime();
 
     if (isIntro) {
       if (reducedMotion) {
@@ -205,13 +175,14 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
         const orbitProgress = smoothProgress.get(); // 0 to 1
         const angle = orbitProgress * Math.PI * 1.5;
         const radius = 25 - (orbitProgress * 5);
-        const targetX = Math.sin(angle) * radius + mx * 2;
+        const breathe = Math.sin(time * 0.6) * 0.07;
+        const targetX = Math.sin(angle) * radius + mx * 0.8;
         const targetZ = -100 + Math.cos(angle) * radius;
-        const targetY = -47 + (orbitProgress * 15) + my * 2;
+        const targetY = -47 + (orbitProgress * 15) + my * 0.6 + breathe;
 
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.05);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.05);
-        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.05);
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.03);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.03);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.03);
         
         camera.lookAt(0, -50 + (orbitProgress * 10), -100);
       }
@@ -271,7 +242,7 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           {/* Farm Level Group */}
           <group position={[0, -50, -100]}>
             <BackgroundLayers />
-            <ProceduralTree position={[0, 0, 0]} />
+            <ProceduralTree position={[0, -2.5, 0]} />
             {settings.volumetricFog && !reducedMotion ? <VolumetricShafts /> : <></>}
             <FallingLeaves count={reducedMotion ? 10 : Math.floor(75 * settings.leafDensity)} /> 
             <Butterflies count={settings.butterflyCount} />

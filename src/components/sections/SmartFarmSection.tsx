@@ -1,7 +1,11 @@
-import { useState, useRef } from"react";
-import { motion, useInView, AnimatePresence } from"framer-motion";
-import { LAYOUT_SPRING } from"../../constants/springs";
-import { useAudio } from"../../hooks/useAudio";
+import { useState, useRef, useEffect } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { useAudio } from "../../hooks/useAudio";
+import { Typography } from "../primitives/Typography";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Button } from "../primitives/Button";
+import { Container } from "../primitives/Container";
 
 // ─── LOCATION DATA ────────────────────────────────────────────────────────────
 const farmLocations = [
@@ -102,7 +106,7 @@ const NPKInteractive = () => {
   const rec = getRecommendation();
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {[
         { key:"n" as const, label:"Nitrogen (N)", color:"#7EC47E" },
         { key:"p" as const, label:"Phosphorus (P)", color:"#E5D08F" },
@@ -110,41 +114,42 @@ const NPKInteractive = () => {
       ].map(({ key, label, color }) => (
         <div key={key}>
           <div className="flex justify-between mb-1.5">
-            <span className="text-xs font-mono text-[#F5F0E8]/45">{label}</span>
-            <span className="text-xs font-mono" style={{ color }}>{npk[key]} kg/acre</span>
+            <Typography variant="micro" color="secondary">{label}</Typography>
+            <Typography variant="micro" style={{ color }}>{npk[key]} kg/acre</Typography>
           </div>
           <input
             type="range" min={10} max={100} value={npk[key]}
             onChange={(e) => setNpk((prev) => ({ ...prev, [key]: +e.target.value }))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-            style={{ background: `linear-gradient(to right, ${color} ${npk[key]}%, #2A2720 ${npk[key]}%)` }}
+            style={{ background: `linear-gradient(to right, ${color} ${npk[key]}%, var(--color-earth-black) ${npk[key]}%)` }}
             aria-label={`Adjust ${label}`}
           />
         </div>
       ))}
 
-      <motion.div
+      <GlassPanel
+        as={motion.div}
         key={rec.crop}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="premium-card p-4 mt-2"
+        className="p-4 mt-2"
         role="status"
         aria-live="polite"
       >
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[#F5F0E8] font-semibold">Recommended: {rec.crop}</p>
-          <span className="text-[#7EC47E] text-sm font-mono font-bold">{rec.score}%</span>
+          <Typography variant="body-md" color="primary" className="font-semibold">Recommended: {rec.crop}</Typography>
+          <Typography variant="micro" className="text-[var(--color-growth-green)] font-bold">{rec.score}%</Typography>
         </div>
-        <div className="w-full h-1 bg-[#2A2720] rounded-full mb-2">
+        <div className="w-full h-1 bg-[var(--color-earth-black)] rounded-full mb-2">
           <motion.div
-            className="h-full bg-[#7EC47E] rounded-full"
+            className="h-full bg-[var(--color-growth-green)] rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${rec.score}%` }}
             transition={LAYOUT_SPRING}
           />
         </div>
-        <p className="text-[#F5F0E8]/35 text-xs">{rec.reason}</p>
-      </motion.div>
+        <Typography variant="caption" color="muted">{rec.reason}</Typography>
+      </GlassPanel>
     </div>
   );
 };
@@ -164,10 +169,10 @@ const SoilVitalityInteractive = () => {
       <div className="flex items-center gap-6">
         <div className="relative w-20 h-20 flex-shrink-0" role="progressbar" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100} aria-label="Soil Health Vitality">
           <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90" aria-hidden="true">
-            <circle cx="40" cy="40" r="30" fill="none" stroke="#2A2720" strokeWidth="6" />
+            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--color-earth-black)" strokeWidth="6" />
             <motion.circle
               cx="40" cy="40" r="30"
-              fill="none" stroke="#E5D08F" strokeWidth="6"
+              fill="none" stroke="var(--color-knowledge-gold)" strokeWidth="6"
               strokeDasharray={`${2 * Math.PI * 30}`}
               initial={{ strokeDashoffset: 2 * Math.PI * 30 }}
               animate={{ strokeDashoffset: 2 * Math.PI * 30 * (1 - score / 100) }}
@@ -175,32 +180,34 @@ const SoilVitalityInteractive = () => {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-[#E5D08F] font-semibold text-lg font-mono">{score}</p>
+            <Typography variant="body-lg" color="gold" className="font-semibold font-mono">{score}</Typography>
           </div>
         </div>
         <div>
-          <p className="text-[#F5F0E8]/60 text-sm font-semibold">Soil Health Vitality</p>
-          <p className="text-[#7EC47E] text-xs">Good Condition — 72% Balance</p>
+          <Typography variant="caption" className="font-semibold block" color="secondary">Soil Health Vitality</Typography>
+          <Typography variant="micro" className="text-[var(--color-growth-green)]">Good Condition — 72% Balance</Typography>
         </div>
       </div>
 
       {/* Deficits + recommendations */}
       {deficits.map((d, i) => (
-        <motion.div key={i}
+        <GlassPanel
+          as={motion.div}
+          key={i}
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
-          className="premium-card p-3"
+          className="p-3"
         >
           <div className="flex justify-between items-center mb-1.5">
-            <p className="text-[#F5F0E8]/55 text-xs">{d.nutrient} deficit: {d.deficit} kg/acre</p>
+            <Typography variant="micro" color="secondary">{d.nutrient} deficit: {d.deficit} kg/acre</Typography>
             <span className="text-xs font-mono font-bold" style={{ color: d.color }}>{d.qty}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
-            <p className="text-[#F5F0E8]/28 text-xs">{d.product} recommended</p>
+            <Typography variant="caption" className="!text-[10px]" color="muted">{d.product} recommended</Typography>
           </div>
-        </motion.div>
+        </GlassPanel>
       ))}
     </div>
   );
@@ -209,22 +216,25 @@ const SoilVitalityInteractive = () => {
 // ─── AI CHAT DEMO ─────────────────────────────────────────────────────────────
 const demoConversations = [
   {
-    question:"ರಾಗಿ ಬೆಳೆಗೆ ಎಷ್ಟು ನೀರು ಬೇಕು?",
-    questionEn:"How much water does Ragi need?",
-    answer:"ರಾಗಿ ಬೆಳೆಗೆ ಮಳೆ ಆಶ್ರಿತ ಕೃಷಿಗೆ 450–600 mm ನೀರು ಸಾಕು. ಮೊದಲ 4 ವಾರ ನೆಲ ಒದ್ದೆ ಇರಲಿ. ಹೂ ಬಿಡುವಾಗ ನೀರಿನ ಕೊರತೆ ಆಗದಂತೆ ಗಮನಿಸಿ.",
-    answerEn:"Ragi needs 450–600mm for rainfed cultivation. Keep soil moist for the first 4 weeks. Never let water stress occur during flowering.",
+    question: "ರಾಗಿ ಬೆಳೆಗೆ ಎಷ್ಟು ನೀರು ಬೇಕು?",
+    questionEn: "How much water does Ragi need?",
+    answer: "ರಾಗಿ ಬೆಳೆಗೆ ಮಳೆ ಆಶ್ರಿತ ಕೃಷಿಗೆ 450–600 mm ನೀರು ಸಾಕು. ಮೊದಲ 4 ವಾರ ನೆಲ ಒದ್ದೆ ಇರಲಿ. ಹೂ ಬಿಡುವಾಗ ನೀರಿನ ಕೊರತೆ ಆಗದಂತೆ ಗಮನಿಸಿ.",
+    answerEn: "Ragi needs 450–600mm for rainfed cultivation. Keep soil moist for the first 4 weeks. Never let water stress occur during flowering.",
+    evidence: "Based on ICAR Ragi Cultivation Guidelines & your local soil moisture sensor readings."
   },
   {
-    question:"ಹತ್ತಿ ಬೆಲೆ ಯಾವಾಗ ಹೆಚ್ಚಾಗುತ್ತದೆ?",
-    questionEn:"When do cotton prices peak?",
-    answer:"ಹತ್ತಿ ಬೆಲೆ ಸಾಮಾನ್ಯವಾಗಿ ಡಿಸೆಂಬರ್-ಜನವರಿಯಲ್ಲಿ ಹೆಚ್ಚಾಗುತ್ತದೆ. ಕಡಿಮೆ ಆವಕ ಮತ್ತು ಹೆಚ್ಚು ಬೇಡಿಕೆ ಕಾರಣ. Market Prices ಪುಟದಲ್ಲಿ ಪ್ರತಿದಿನ ಮಂಡಿ ಬೆಲೆ ನೋಡಿ.",
-    answerEn:"Cotton prices typically peak Dec–Jan due to lower supply and higher demand. Check the Market Prices page daily for live mandi rates.",
+    question: "ಹತ್ತಿ ಬೆಲೆ ಯಾವಾಗ ಹೆಚ್ಚಾಗುತ್ತದೆ?",
+    questionEn: "When do cotton prices peak?",
+    answer: "ಹತ್ತಿ ಬೆಲೆ ಸಾಮಾನ್ಯವಾಗಿ ಡಿಸೆಂಬರ್-ಜನವರಿಯಲ್ಲಿ ಹೆಚ್ಚಾಗುತ್ತದೆ. ಕಡಿಮೆ ಆವಕ ಮತ್ತು ಹೆಚ್ಚು ಬೇಡಿಕೆ ಕಾರಣ. Market Prices ಪುಟದಲ್ಲಿ ಪ್ರತಿದಿನ ಮಂಡಿ ಬೆಲೆ ನೋಡಿ.",
+    answerEn: "Cotton prices typically peak Dec–Jan due to lower supply and higher demand. Check the Market Prices page daily for live mandi rates.",
+    evidence: "Derived from 5-year historical APMC data for Shivamogga Mandi."
   },
   {
-    question:"PM-KISAN ಗೆ ಅರ್ಜಿ ಹೇಗೆ ಹಾಕಬೇಕು?",
-    questionEn:"How do I apply for PM-KISAN?",
-    answer:"PM-KISAN ಅಡಿಯಲ್ಲಿ ₹6,000/ವರ್ಷ ಸಿಗುತ್ತದೆ. ಅರ್ಜಿ ಹಾಕಲು: ಹತ್ತಿರದ ಕೃಷಿ ಕಚೇರಿ ಅಥವಾ CSC ಕೇಂದ್ರಕ್ಕೆ ಹೋಗಿ. Aadhaar ಮತ್ತು ಭೂ ದಾಖಲೆ ತೆಗೆದುಕೊಂಡು ಹೋಗಿ. Gov Schemes ಪುಟದಲ್ಲಿ ಹೆಚ್ಚಿನ ವಿವರ ನೋಡಿ.",
-    answerEn:"PM-KISAN gives ₹6,000/year. Apply at your nearest agriculture office or CSC centre. Bring Aadhaar and land records. Check Gov Schemes page for details.",
+    question: "PM-KISAN ಗೆ ಅರ್ಜಿ ಹೇಗೆ ಹಾಕಬೇಕು?",
+    questionEn: "How do I apply for PM-KISAN?",
+    answer: "PM-KISAN ಅಡಿಯಲ್ಲಿ ₹6,000/ವರ್ಷ ಸಿಗುತ್ತದೆ. ಅರ್ಜಿ ಹಾಕಲು: ಹತ್ತಿರದ ಕೃಷಿ ಕಚೇರಿ ಅಥವಾ CSC ಕೇಂದ್ರಕ್ಕೆ ಹೋಗಿ. Aadhaar ಮತ್ತು ಭೂ ದಾಖಲೆ ತೆಗೆದುಕೊಂಡು ಹೋಗಿ. Gov Schemes ಪುಟದಲ್ಲಿ ಹೆಚ್ಚಿನ ವಿವರ ನೋಡಿ.",
+    answerEn: "PM-KISAN gives ₹6,000/year. Apply at your nearest agriculture office or CSC centre. Bring Aadhaar and land records. Check Gov Schemes page for details.",
+    evidence: "Verified via pmkisan.gov.in official portal API."
   },
 ];
 
@@ -232,50 +242,84 @@ const AIChatDemo = () => {
   const [activeQ, setActiveQ] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [typing, setTyping] = useState(false);
+  const [displayedText, setDisplayedText] = useState("");
+  const [displayedTextEn, setDisplayedTextEn] = useState("");
+  const [showFollowUp, setShowFollowUp] = useState(false);
 
   const handleQuestion = (i: number) => {
     setActiveQ(i);
     setShowAnswer(false);
+    setDisplayedText("");
+    setDisplayedTextEn("");
+    setShowFollowUp(false);
     setTyping(true);
-    setTimeout(() => { setTyping(false); setShowAnswer(true); }, 1800);
+    setTimeout(() => { setTyping(false); setShowAnswer(true); }, 1200);
   };
+
+  useEffect(() => {
+    if (!showAnswer) return;
+    
+    const fullKn = demoConversations[activeQ].answer;
+    const fullEn = demoConversations[activeQ].answerEn;
+    let knIndex = 0;
+    let enIndex = 0;
+    
+    const intervalKn = setInterval(() => {
+      setDisplayedText(fullKn.slice(0, knIndex));
+      knIndex++;
+      if (knIndex > fullKn.length) {
+        clearInterval(intervalKn);
+        const intervalEn = setInterval(() => {
+          setDisplayedTextEn(fullEn.slice(0, enIndex));
+          enIndex++;
+          if (enIndex > fullEn.length) {
+            clearInterval(intervalEn);
+            setTimeout(() => setShowFollowUp(true), 400);
+          }
+        }, 15);
+      }
+    }, 30);
+    
+    return () => { clearInterval(intervalKn); };
+  }, [showAnswer, activeQ]);
 
   return (
     <div className="space-y-4">
       {/* Question buttons */}
       <div className="space-y-2">
-        <p className="text-[#F5F0E8]/25 text-xs font-mono uppercase tracking-[0.3em] mb-3">
+        <Typography variant="micro" color="muted" className="uppercase tracking-[0.3em] mb-3 block">
           Sample questions — click to ask
-        </p>
+        </Typography>
         {demoConversations.map((conv, i) => (
           <motion.button
             key={i}
             onClick={() => handleQuestion(i)}
-            whileHover={{ borderColor:"rgba(201,168,76,0.4)" }}
+            disabled={typing || (showAnswer && !showFollowUp)}
+            whileHover={{ borderColor: "rgba(201,168,76,0.4)" }}
             aria-label={`Ask AI: ${conv.questionEn}`}
-            className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
+            className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-knowledge-gold)] ${
               activeQ === i
-                ?""
-                :"border-[#2A2720] hover:bg-[#191610]"
-            }`}
+                ? "border-[rgba(201,168,76,0.5)] bg-[rgba(201,168,76,0.08)]"
+                : "border-[var(--color-glass-border,rgba(255,255,255,0.06))] hover:bg-white/5"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <p className="text-[#F5F0E8]/60 font-serif mb-0.5">{conv.question}</p>
-            <p className="text-[#F5F0E8]/22 font-mono text-[10px]">{conv.questionEn}</p>
+            <Typography variant="caption" color="secondary" className="font-serif mb-0.5 block">{conv.question}</Typography>
+            <Typography variant="caption" color="muted" className="!text-[10px] block">{conv.questionEn}</Typography>
           </motion.button>
         ))}
       </div>
 
-      <div className="premium-card p-4 min-h-[100px]" role="status" aria-live="polite">
+      <GlassPanel className="p-4 min-h-[100px] flex flex-col" role="status" aria-live="polite">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-5 h-5 rounded-md flex items-center justify-center text-xs" aria-hidden="true">🤖</div>
-          <p className="text-[#E5D08F] text-xs font-mono">Krishi Mitra AI</p>
+          <Typography variant="micro" color="gold">Krishi Mitra AI</Typography>
           {typing && (
             <div className="flex gap-1 ml-2" aria-label="Krishi Mitra is typing" aria-busy="true">
               {[0, 1, 2].map(i => (
                 <motion.div key={i}
                   animate={{ y: [0, -4, 0] }}
                   transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
-                  className="w-1 h-1 rounded-full"
+                  className="w-1 h-1 rounded-full bg-[var(--color-knowledge-gold)]"
                 />
               ))}
             </div>
@@ -287,24 +331,56 @@ const AIChatDemo = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={LAYOUT_SPRING}>
-              <p className="text-[#F5F0E8]/65 text-sm font-serif leading-relaxed mb-2">
-                {demoConversations[activeQ].answer}
-              </p>
-              <p className="text-[#F5F0E8]/25 text-xs leading-relaxed italic">
-                {demoConversations[activeQ].answerEn}
-              </p>
+              transition={LAYOUT_SPRING}
+              className="flex-1 flex flex-col"
+            >
+              <Typography variant="caption" color="secondary" className="font-serif leading-relaxed mb-2 block">
+                {displayedText}
+                {displayedText.length < demoConversations[activeQ].answer.length && (
+                  <span className="inline-block w-1.5 h-3 ml-1 bg-[var(--color-knowledge-gold)] animate-pulse" />
+                )}
+              </Typography>
+              <Typography variant="caption" color="muted" className="!text-[10px] leading-relaxed italic mb-4 block">
+                {displayedTextEn}
+                {displayedText.length === demoConversations[activeQ].answer.length && displayedTextEn.length < demoConversations[activeQ].answerEn.length && (
+                  <span className="inline-block w-1.5 h-3 ml-1 bg-[var(--color-knowledge-gold)] animate-pulse" />
+                )}
+              </Typography>
+              
+              {showFollowUp && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 pt-3 border-t border-[var(--color-glass-border,rgba(255,255,255,0.06))]"
+                >
+                  <div className="flex items-start gap-2 mb-4 p-2.5 rounded bg-[var(--color-earth-black)]/50 border border-[var(--color-glass-border,rgba(255,255,255,0.06))]">
+                    <span className="text-[10px] bg-[var(--color-knowledge-gold)]/10 text-[var(--color-knowledge-gold)] px-1.5 py-0.5 rounded font-mono uppercase tracking-widest mt-0.5">Evidence</span>
+                    <Typography variant="caption" color="muted" className="!text-[10px] italic">{demoConversations[activeQ].evidence}</Typography>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <Typography variant="micro" color="muted" className="uppercase tracking-[0.2em] w-full mb-1 block !text-[9px]">Suggested Follow-ups</Typography>
+                    <button className="px-3 py-1.5 rounded-full border border-[var(--color-knowledge-gold)]/20 text-[var(--color-text-muted)] text-xs hover:bg-[var(--color-knowledge-gold)]/10 hover:text-[var(--color-knowledge-gold)] hover:border-[var(--color-knowledge-gold)]/40 transition-all font-serif">
+                      ಹೆಚ್ಚಿನ ವಿವರ ಕೊಡಿ (Give more details)
+                    </button>
+                    <button className="px-3 py-1.5 rounded-full border border-[var(--color-knowledge-gold)]/20 text-[var(--color-text-muted)] text-xs hover:bg-[var(--color-knowledge-gold)]/10 hover:text-[var(--color-knowledge-gold)] hover:border-[var(--color-knowledge-gold)]/40 transition-all font-serif">
+                      ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಎಲ್ಲಿದೆ? (Nearest market?)
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
           {!showAnswer && !typing && (
-            <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="text-[#F5F0E8]/20 text-xs font-mono">
-              Click a question above to see Krishi Mitra respond in Kannada
-            </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <Typography variant="caption" color="muted" className="!text-[10px] block">
+                Click a question above to see Krishi Mitra respond in Kannada
+              </Typography>
+            </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </GlassPanel>
     </div>
   );
 };
@@ -323,27 +399,29 @@ const CommunityFeedDemo = () => {
   return (
     <div className="space-y-3">
       {posts.map((post, i) => (
-        <motion.div key={i}
+        <GlassPanel
+          as={motion.div}
+          key={i}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
-          className="premium-card p-4"
+          className="p-4"
         >
           <div className="flex items-center gap-2.5 mb-2.5">
-            <div className="w-7 h-7 rounded-full border flex items-center justify-center text-xs font-semibold text-[#E5D08F]" aria-hidden="true">
+            <div className="w-7 h-7 rounded-full border border-[var(--color-glass-border,rgba(255,255,255,0.06))] flex items-center justify-center text-xs font-semibold text-[var(--color-knowledge-gold)]" aria-hidden="true">
               {post.avatar}
             </div>
             <div>
-              <p className="text-[#F5F0E8]/70 text-xs font-semibold">{post.user}</p>
-              <p className="text-[#F5F0E8]/25 text-[10px] font-mono">📍 {post.district} · {post.time}</p>
+              <Typography variant="caption" className="font-semibold block" color="secondary">{post.user}</Typography>
+              <Typography variant="caption" className="!text-[10px] block" color="muted">📍 {post.district} · {post.time}</Typography>
             </div>
           </div>
-          <p className="text-[#F5F0E8]/50 text-xs leading-relaxed mb-3">"{post.content}"</p>
-          <div className="flex gap-4 text-[10px] text-[#F5F0E8]/25 font-mono">
-            <span>❤ {post.likes}</span>
-            <span>💬 {post.comments}</span>
+          <Typography variant="caption" color="secondary" className="leading-relaxed mb-3 block">"{post.content}"</Typography>
+          <div className="flex gap-4">
+            <Typography variant="caption" className="!text-[10px]" color="muted">❤ {post.likes}</Typography>
+            <Typography variant="caption" className="!text-[10px]" color="muted">💬 {post.comments}</Typography>
           </div>
-        </motion.div>
+        </GlassPanel>
       ))}
     </div>
   );
@@ -362,7 +440,7 @@ const CropTimelineDemo = () => {
 
   return (
     <div className="relative">
-      <div className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-[#E5D08F]/40 to-transparent" />
+      <div className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-[var(--color-knowledge-gold)]/40 to-transparent" />
       <div className="space-y-3 pl-12">
         {stages.map((stage, i) => (
           <motion.div key={i}
@@ -371,16 +449,16 @@ const CropTimelineDemo = () => {
             transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
             className="relative"
           >
-            <div className="absolute -left-7 w-5 h-5 rounded-full bg-[#111008] border flex items-center justify-center text-xs" aria-hidden="true">
+            <div className="absolute -left-7 w-5 h-5 rounded-full bg-[var(--color-earth-black)] border border-[var(--color-glass-border,rgba(255,255,255,0.06))] flex items-center justify-center text-xs" aria-hidden="true">
               {stage.icon}
             </div>
-            <div className="premium-card px-3 py-2.5">
+            <GlassPanel className="px-3 py-2.5">
               <div className="flex items-center justify-between mb-0.5">
-                <p className="text-[#F5F0E8]/65 text-xs font-semibold">{stage.label}</p>
-                <span className="text-[10px] font-mono text-[#E5D08F]/50">{stage.days}</span>
+                <Typography variant="caption" className="font-semibold" color="secondary">{stage.label}</Typography>
+                <Typography variant="caption" className="!text-[10px]" color="gold">{stage.days}</Typography>
               </div>
-              <p className="text-[#F5F0E8]/28 text-xs leading-relaxed">{stage.detail}</p>
-            </div>
+              <Typography variant="caption" color="muted" className="leading-relaxed block">{stage.detail}</Typography>
+            </GlassPanel>
           </motion.div>
         ))}
       </div>
@@ -400,34 +478,34 @@ const WeatherDemo = () => {
 
   return (
     <div className="space-y-4">
-      <div className="premium-card p-4">
-        <p className="text-[10px] font-mono text-[#F5F0E8]/50 uppercase tracking-[0.3em] mb-1">
+      <GlassPanel className="p-4">
+        <Typography variant="micro" color="muted" className="uppercase tracking-[0.3em] mb-1 block">
           Current · Shivamogga
-        </p>
-        <p className="text-[#F5F0E8] text-3xl font-semibold font-mono">28°C</p>
-        <p className="text-[#F5F0E8] text-xs">Partly Cloudy · Humidity 67%</p>
-      </div>
+        </Typography>
+        <Typography variant="heading-1" className="!text-3xl font-mono block">28°C</Typography>
+        <Typography variant="caption" color="secondary" className="block">Partly Cloudy · Humidity 67%</Typography>
+      </GlassPanel>
 
       <div className="grid grid-cols-5 gap-1.5">
         {days.map((d, i) => (
-          <div key={i} className="premium-card p-2 text-center">
-            <p className="text-[10px] font-mono text-[#F5F0E8]/30">{d.day}</p>
+          <GlassPanel key={i} className="p-2 text-center">
+            <Typography variant="caption" className="!text-[10px] block" color="muted">{d.day}</Typography>
             <p className="text-lg my-1" aria-hidden="true">{d.icon}</p>
-            <p className="text-[#F5F0E8]/55 text-xs font-mono">{d.temp}</p>
-            <p className="text-[#F5F0E8]/60 text-[9px] font-mono">{d.rain}</p>
-          </div>
+            <Typography variant="caption" color="secondary" className="block font-mono">{d.temp}</Typography>
+            <Typography variant="caption" color="muted" className="!text-[9px] block font-mono">{d.rain}</Typography>
+          </GlassPanel>
         ))}
       </div>
 
-      <div className="premium-card border p-3">
-        <p className="text-[9px] font-mono text-[#7EC47E]/50 uppercase tracking-[0.3em] mb-1">
+      <GlassPanel className="p-3">
+        <Typography variant="micro" className="uppercase tracking-[0.3em] mb-1 block text-[var(--color-growth-green)]/60">
           AI Farming Advisory
-        </p>
-        <p className="text-[#F5F0E8]/50 text-xs leading-relaxed">
+        </Typography>
+        <Typography variant="caption" color="muted" className="leading-relaxed block">
           ⚡ Heavy rain Friday–Saturday. Delay pesticide application by 3 days.
           Harvest window open Monday morning.
-        </p>
-      </div>
+        </Typography>
+      </GlassPanel>
     </div>
   );
 };
@@ -443,33 +521,35 @@ const PriceChartDemo = () => {
 
   return (
     <div className="space-y-2.5">
-      <p className="text-[10px] font-mono text-[#F5F0E8]/25 uppercase tracking-[0.3em]">
+      <Typography variant="micro" color="muted" className="uppercase tracking-[0.3em] block">
         Live Shivamogga Mandi · Today
-      </p>
+      </Typography>
       {crops.map((crop, i) => (
-        <motion.div key={i}
+        <GlassPanel
+          as={motion.div}
+          key={i}
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...LAYOUT_SPRING, delay: i * 0.08 }}
-          className="flex items-center gap-3 premium-card px-3 py-2.5"
+          className="flex items-center gap-3 px-3 py-2.5"
         >
-          <p className="text-[#F5F0E8]/55 text-xs flex-1">{crop.name}</p>
+          <Typography variant="caption" color="secondary" className="flex-1">{crop.name}</Typography>
           <div className="text-right">
-            <p className="text-[#F5F0E8] text-xs font-mono font-semibold">
+            <Typography variant="caption" color="primary" className="font-mono font-semibold block">
               ₹{crop.price.toLocaleString()}/Q
-            </p>
+            </Typography>
             {crop.msp > 0 && (
-              <p className="text-[10px] font-mono text-[#F5F0E8]/25">
+              <Typography variant="caption" color="muted" className="!text-[10px] block">
                 MSP ₹{crop.msp.toLocaleString()}
-              </p>
+              </Typography>
             )}
           </div>
           <span className={`text-xs font-mono font-bold flex-shrink-0 ${
-            crop.trend.startsWith("+") ?"text-[#7EC47E]" :"text-[#E06060]"
+            crop.trend.startsWith("+") ? "text-[var(--color-growth-green)]" : "text-[var(--color-alert-amber)]"
           }`}>
             {crop.trend}
           </span>
-        </motion.div>
+        </GlassPanel>
       ))}
     </div>
   );
@@ -481,7 +561,7 @@ const VoiceWaveDemo = () => {
   const commands = ["ಮಾರ್ಕೆಟ್ ಬೆಲೆ","ಹವಾಮಾನ","ನನ್ನ ತೋಟ","ಸ್ಕೀಮ್","ಬೆಳೆ","ಸಮುದಾಯ"];
 
   return (
-    <div className="text-center space-y-5">
+    <div className="text-center space-y-6">
       <motion.button
         onClick={() => setActive(!active)}
         whileHover={{ scale: 1.05 }}
@@ -508,15 +588,15 @@ const VoiceWaveDemo = () => {
         ))}
       </div>
 
-      <p className="text-[#F5F0E8]/35 text-xs font-mono" role="status" aria-live="polite">
-        {active ?"Listening in Kannada..." :"Tap to demo voice"}
-      </p>
+      <Typography variant="micro" color="muted" className="block mt-6" role="status" aria-live="polite">
+        {active ? "Listening in Kannada..." : "Tap to demo voice"}
+      </Typography>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2 mt-6">
         {commands.map((cmd, i) => (
-          <div key={i} className="premium-card py-2 px-2 text-center">
-            <p className="text-[#F5F0E8]/45 text-xs font-serif">{cmd}</p>
-          </div>
+          <GlassPanel key={i} className="py-2 px-2 text-center">
+            <Typography variant="caption" color="secondary" className="font-serif">{cmd}</Typography>
+          </GlassPanel>
         ))}
       </div>
     </div>
@@ -546,23 +626,25 @@ export const SmartFarmSection = () => {
   const { playClick, playGlass } = useAudio();
 
   return (
-    <section ref={ref} className="relative py-32 bg-transparent z-10">
-      <div className="max-w-7xl mx-auto px-6 text-center">
+    <section ref={ref} className="relative bg-transparent z-10">
+      <Container maxWidth="xl" paddingY="xl" className="text-center">
 
         <motion.div className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={LAYOUT_SPRING}>
-          <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+          <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-4" color="gold">
             Interactive Smart Farm
-          </p>
-          <h2 className="text-display-2 mb-4">
-            Explore the platform.<br />
-            <span className="text-[#E5D08F]">Without logging in.</span>
-          </h2>
-          <p className="text-[#F5F0E8]/30 max-w-xl mx-auto">
+          </Typography>
+          <div className="mb-4">
+            <Typography variant="display-2">
+              Explore the platform.<br />
+              <span className="text-[var(--color-knowledge-gold)]">Without logging in.</span>
+            </Typography>
+          </div>
+          <Typography variant="body-md" color="muted" className="max-w-xl mx-auto">
             Eight interactive demonstrations. Each one teaches you exactly what AgriCompass does.
-          </p>
+          </Typography>
         </motion.div>
 
         {/* Location tabs — icon grid */}
@@ -574,15 +656,15 @@ export const SmartFarmSection = () => {
               role="tab"
               aria-selected={active === i}
               aria-controls={`panel-${loc.id}`}
-              className={`p-3 rounded-xl text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] ${
+              className={`p-3 rounded-xl text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-knowledge-gold)] ${
                 active === i
-                  ?"border"
-                  :"border border-[#2A2720] hover:hover:"
+                  ? "border border-[var(--color-knowledge-gold)]/30 bg-[var(--color-knowledge-gold)]/5"
+                  : "border border-[var(--color-glass-border,rgba(255,255,255,0.06))] hover:bg-white/5"
               }`}>
               <div className="text-2xl mb-1" aria-hidden="true">{loc.icon}</div>
-              <div className="text-[8px] text-[#F5F0E8]/28 font-mono uppercase leading-tight hidden md:block truncate">
+              <Typography variant="micro" className="uppercase leading-tight hidden md:block truncate" color="muted">
                 {loc.name}
-              </div>
+              </Typography>
             </motion.button>
           ))}
         </div>
@@ -599,46 +681,41 @@ export const SmartFarmSection = () => {
             className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start"
           >
             {/* Info side */}
-            <div>
-              <div className="flex items-center gap-2 mb-5">
+            <div className="text-left">
+              <div className="flex items-center gap-2 mb-6">
                 <span className="text-4xl" aria-hidden="true">{farmLocations[active].icon}</span>
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-[0.3em] mb-0.5"
-                    style={{ color: farmLocations[active].color }}>
+                  <Typography variant="micro" className="uppercase tracking-[0.3em] mb-0.5 block" style={{ color: farmLocations[active].color }}>
                     {farmLocations[active].tagline}
-                  </p>
-                  <h3 className="font-serif text-3xl text-[#F5F0E8]">
+                  </Typography>
+                  <Typography variant="heading-1" className="font-serif !text-3xl">
                     {farmLocations[active].name}
-                  </h3>
+                  </Typography>
                 </div>
               </div>
-              <p className="text-[#F5F0E8]/45 text-base leading-relaxed mb-6">
+              <Typography variant="body-md" color="secondary" className="leading-relaxed mb-6 block">
                 {farmLocations[active].description}
-              </p>
-              <div className="premium-card rounded-xl px-4 py-3 mb-6"
-                style={{ borderColor: `${farmLocations[active].color}22` }}>
-                <p className="text-[10px] font-mono uppercase tracking-[0.3em] mb-1"
-                  style={{ color: `${farmLocations[active].color}88` }}>
+              </Typography>
+              <GlassPanel className="rounded-xl px-4 py-3 mb-6" style={{ borderColor: `color-mix(in srgb, ${farmLocations[active].color} 22%, transparent)` }}>
+                <Typography variant="micro" className="uppercase tracking-[0.3em] mb-1 block" style={{ color: `color-mix(in srgb, ${farmLocations[active].color} 88%, transparent)` }}>
                   Key fact
-                </p>
-                <p className="text-[#F5F0E8]/55 text-sm">{farmLocations[active].keyFact}</p>
-              </div>
-              <a href="https://agri-compass-v3.vercel.app" target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[#E5D08F] text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5D08F] border px-5 py-2.5 rounded-lg hover:hover:transition-all">
+                </Typography>
+                <Typography variant="caption" color="secondary">{farmLocations[active].keyFact}</Typography>
+              </GlassPanel>
+              <Button as="a" href="https://agri-compass-v3.vercel.app" target="_blank" rel="noopener noreferrer" variant="outline">
                 Try live →
-              </a>
+              </Button>
             </div>
 
-            <div className="premium-card p-6">
-              <p className="text-[10px] font-mono text-[#F5F0E8]/25 uppercase tracking-[0.3em] mb-5">
+            <GlassPanel className="p-6 text-left">
+              <Typography variant="micro" color="muted" className="uppercase tracking-[0.3em] mb-6 block">
                 Interactive demo
-              </p>
+              </Typography>
               <InteractiveContent type={farmLocations[active].interactive} />
-            </div>
+            </GlassPanel>
           </motion.div>
         </AnimatePresence>
-      </div>
+      </Container>
     </section>
   );
 };

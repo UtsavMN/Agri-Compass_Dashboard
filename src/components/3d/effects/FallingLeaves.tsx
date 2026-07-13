@@ -231,6 +231,16 @@ export const FallingLeaves = ({ count = 200, petalCount = 100 }: { count?: numbe
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
+  useEffect(() => {
+    return () => {
+      leafMaterial.dispose();
+      petalMaterial.dispose();
+      leafGeometry.dispose();
+      petalGeometry.dispose();
+      leafTexture.dispose();
+    };
+  }, [leafMaterial, petalMaterial, leafGeometry, petalGeometry, leafTexture]);
+
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime();
     const dt = Math.min(delta, 0.1);

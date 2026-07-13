@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -38,6 +38,13 @@ export const BackgroundLayers = () => {
     geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     return geom;
   }, []);
+
+  useEffect(() => {
+    return () => {
+      starsGeometry.dispose();
+      dustGeometry.dispose();
+    };
+  }, [starsGeometry, dustGeometry]);
 
   useFrame((state) => {
     if (starsRef.current) {

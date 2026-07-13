@@ -22,6 +22,7 @@ const TechSection = lazy(() => import("../components/sections/TechSection").then
 const TeamSection = lazy(() => import("../components/sections/TeamSection").then(m => ({ default: m.TeamSection })));
 const VisionSection = lazy(() => import("../components/sections/VisionSection").then(m => ({ default: m.VisionSection })));
 const UserJourneySection = lazy(() => import("../components/sections/UserJourneySection").then(m => ({ default: m.UserJourneySection })));
+const KnowledgeGraphSection = lazy(() => import("../components/sections/KnowledgeGraphSection").then(m => ({ default: m.KnowledgeGraphSection })));
 const FinalExperienceSection = lazy(() => import("../components/sections/FinalExperienceSection").then(m => ({ default: m.FinalExperienceSection })));
 
 import { useReducedMotion } from "../hooks/useReducedMotion";
@@ -81,25 +82,28 @@ export const Home = () => {
                 <Suspense fallback={<SectionLoader />}><ProblemSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><StatsSection /></Suspense>
-                <GoldDivider />
-
-                <Suspense fallback={<SectionLoader />}><FeaturesSection /></Suspense>
-                <GoldDivider />
-
-                <Suspense fallback={<SectionLoader />}><SmartFarmSection /></Suspense>
+                <Suspense fallback={<SectionLoader />}><KnowledgeGraphSection /></Suspense>
                 <GoldDivider />
 
                 <Suspense fallback={<SectionLoader />}><UserJourneySection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><EngineeringLabSection /></Suspense>
+                <Suspense fallback={<SectionLoader />}><SmartFarmSection /></Suspense>
                 <GoldDivider />
 
                 <Suspense fallback={<SectionLoader />}><VoiceSection /></Suspense>
                 <GoldDivider />
 
+                <Suspense fallback={<SectionLoader />}><FeaturesSection /></Suspense>
+                <GoldDivider />
+
+                <Suspense fallback={<SectionLoader />}><EngineeringLabSection /></Suspense>
+                <GoldDivider />
+
                 <Suspense fallback={<SectionLoader />}><TechSection /></Suspense>
+                <GoldDivider />
+
+                <Suspense fallback={<SectionLoader />}><StatsSection /></Suspense>
                 <GoldDivider />
 
                 <Suspense fallback={<SectionLoader />}><VisionSection /></Suspense>

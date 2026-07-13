@@ -125,21 +125,22 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
           float fresnel = dot(viewDir, vNormal);
           fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
           
-          // Outer edge intense blue, inner edge fades to transparent
-          float edgeGlow = pow(fresnel, 4.0) * 2.5;
-          float coreGlow = pow(fresnel, 2.0) * 0.4;
+          // Thinner, much softer glow
+          float edgeGlow = pow(fresnel, 6.0) * 1.2;
+          float coreGlow = pow(fresnel, 3.0) * 0.2;
           
           // Sunset/Sunrise reddish scatter on the terminator
           vec3 lightDir = normalize(vec3(10.0, 20.0, 10.0));
           float nDotL = dot(vNormal, lightDir);
-          float terminator = smoothstep(0.0, 0.3, nDotL) - smoothstep(0.4, 0.7, nDotL);
+          float terminator = smoothstep(0.1, 0.4, nDotL) - smoothstep(0.5, 0.8, nDotL);
           
           vec3 atmosColor = vec3(0.2, 0.5, 1.0); // Vibrant Azure
-          vec3 sunsetColor = vec3(0.9, 0.4, 0.2); // Warm orange/red
+          vec3 sunsetColor = vec3(1.0, 0.4, 0.1); // Warm orange/red
           
-          vec3 finalColor = mix(atmosColor, sunsetColor, terminator * 0.6);
+          vec3 finalColor = mix(atmosColor, sunsetColor, terminator * 0.8);
           
-          gl_FragColor = vec4(finalColor, edgeGlow + coreGlow);
+          gl_FragColor = vec4(finalColor, (edgeGlow + coreGlow) * smoothstep(-0.2, 0.5, nDotL)); 
+          // Only show atmosphere strongly on the day side, fading into night
         }
       `,
       transparent: true,
@@ -219,7 +220,7 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
       
       {/* Atmosphere Glow */}
       <mesh material={atmosMat}>
-        <sphereGeometry args={[earthRadius + 0.3, 64, 64]} />
+        <sphereGeometry args={[earthRadius + 0.05, 64, 64]} />
       </mesh>
       
       {/* Karnataka Cinematic Beacon */}

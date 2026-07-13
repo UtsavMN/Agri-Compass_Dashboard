@@ -1,42 +1,49 @@
-import { useRef } from"react";
-import { motion, useInView } from"framer-motion";
-import { LAYOUT_SPRING } from"../../constants/springs";
-import { team } from"../../constants/team";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { team } from "../../constants/team";
+import { Typography } from "../primitives/Typography";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Container } from "../primitives/Container";
 
 export const TeamSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin:"-80px" });
 
   return (
-    <section id="team" ref={ref} className="relative py-32 bg-transparent z-10">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="team" ref={ref} className="relative bg-transparent z-10">
+      <Container maxWidth="lg" paddingY="xl">
 
         <motion.div className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={LAYOUT_SPRING}>
-          <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+          <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-4" color="gold">
             The Builders
-          </p>
-          <h2 className="text-display-2 mb-4">
-            Four students.<br />
-            <span className="text-[#E5D08F]">One mission.</span>
-          </h2>
-          <p className="text-[#F5F0E8]/40 max-w-lg mx-auto leading-relaxed">
+          </Typography>
+          <div className="mb-4">
+            <Typography variant="display-2">
+              Four students.<br />
+              <span className="text-[var(--color-knowledge-gold)]">One mission.</span>
+            </Typography>
+          </div>
+          <Typography variant="body-md" color="secondary" className="max-w-lg mx-auto">
             A final-year engineering project that became a platform serving real farmers.
             Built with genuine curiosity and a shared belief that technology can improve lives.
-          </p>
+          </Typography>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24 max-w-4xl mx-auto items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24 max-w-4xl mx-auto items-center">
           {team.map((member, i) => (
-            <motion.div
+            <GlassPanel
+              as={motion.div}
               key={member.name}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin:"-50px" }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
-              className="premium-card p-10 text-center flex flex-col items-center group w-full"
+              className="p-8 text-center flex flex-col items-center group w-full"
+              interaction="hover"
             >
               <div className="flex flex-col items-center gap-4 mb-6 relative z-10">
                 <div
@@ -50,20 +57,16 @@ export const TeamSection = () => {
                   {member.avatar}
                 </div>
                 <div className="min-w-0 flex flex-col items-center">
-                  <p className="text-[#F5F0E8] font-semibold text-xl leading-tight">
-                    {member.name}
-                  </p>
-                  <p className="text-sm mt-1" style={{ color: member.color }}>
-                    {member.role}
-                  </p>
+                  <Typography variant="heading-2" color="primary">{member.name}</Typography>
+                  <Typography variant="caption" style={{ color: member.color }} className="mt-1 block">{member.role}</Typography>
                 </div>
               </div>
 
-              <p className="text-[#F5F0E8]/40 text-sm leading-relaxed mb-5">
-                {member.description}
-              </p>
+              <div className="mb-6">
+                <Typography variant="body-md" color="secondary">{member.description}</Typography>
+              </div>
 
-              <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <div className="flex flex-wrap justify-center gap-2 mb-8">
                 {member.tags.map((tag) => (
                   <span
                     key={tag}
@@ -79,15 +82,15 @@ export const TeamSection = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ borderColor: `${member.color}50`, color: member.color }}
-                className="inline-flex items-center gap-2 text-xs font-mono text-[#F5F0E8]/28
-                           border border-[#2A2720] px-3.5 py-2 rounded-lg transition-all"
+                className="inline-flex items-center gap-2 text-xs font-mono text-[var(--color-text-muted)]
+                           border border-[var(--color-glass-border,rgba(255,255,255,0.06))] px-3.5 py-2 rounded-lg transition-all"
               >
                 LinkedIn Profile →
               </motion.a>
-            </motion.div>
+            </GlassPanel>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 };

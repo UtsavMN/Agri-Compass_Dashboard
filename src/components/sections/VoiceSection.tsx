@@ -44,7 +44,7 @@ export const VoiceSection = () => {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={LAYOUT_SPRING}
         >
-          <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+          <p className="label-super">
             Designed for India First
           </p>
           <h2 className="text-display-2 mb-4">
@@ -113,7 +113,7 @@ export const VoiceSection = () => {
               </motion.button>
 
               {/* Sound wave bars */}
-              <div className="flex items-end justify-center gap-1 h-9 mb-5">
+              <div className="flex items-end justify-center gap-1 h-9 mb-6">
                 {Array.from({ length: 16 }).map((_, i) => (
                   <motion.div
                     key={i}
@@ -213,7 +213,7 @@ export const VoiceSection = () => {
             ))}
           </div>
 
-          <div className="bg-transparent border border-[#2A2720] rounded-xl p-5">
+          <div className="bg-transparent border border-[#2A2720] rounded-xl p-6">
             <p className="text-[#E5D08F] text-xs font-mono uppercase tracking-[0.3em] mb-2">
               Technical Implementation
             </p>

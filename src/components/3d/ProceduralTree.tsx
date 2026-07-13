@@ -1,72 +1,127 @@
 import { useRef, useMemo, useEffect, useState } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScroll } from "framer-motion";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useQualityStore } from "../../store/useQualityStore";
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+interface PathNode {
+  pos: THREE.Vector3;
+  dir: THREE.Vector3;
+  radius: number;
+}
+
+class TaperedTubeGeometry extends THREE.TubeGeometry {
+  constructor(path: THREE.Curve<THREE.Vector3>, tubularSegments: number, radiusArray: number[], radialSegments: number) {
+    super(path, tubularSegments, 1, radialSegments, false);
+    const pos = this.attributes.position;
+    
+    for (let i = 0; i <= tubularSegments; i++) {
+      const u = i / tubularSegments;
+      const idx = u * (radiusArray.length - 1);
+      const iIdx = Math.floor(idx);
+      const f = idx - iIdx;
+      const rad = iIdx < radiusArray.length - 1 
+         ? radiusArray[iIdx] * (1 - f) + radiusArray[iIdx + 1] * f
+         : radiusArray[radiusArray.length - 1];
+         
+      const pt = path.getPointAt(u);
+      
+      for (let j = 0; j <= radialSegments; j++) {
+         const vIdx = i * (radialSegments + 1) + j;
+         let x = pos.getX(vIdx);
+         let y = pos.getY(vIdx);
+         let z = pos.getZ(vIdx);
+         
+         const dir = new THREE.Vector3(x - pt.x, y - pt.y, z - pt.z).normalize();
+         const newPos = pt.clone().add(dir.multiplyScalar(rad));
+         
+         pos.setXYZ(vIdx, newPos.x, newPos.y, newPos.z);
+      }
+    }
+    this.computeVertexNormals();
+  }
+}
 
 // ─── L-SYSTEM GENERATOR (Banyan-Inspired Organic Growth) ────────────────────────
-const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadius = 1.3) => {
-  const mainBranchMatrices: THREE.Matrix4[] = [];
-  const twigMatrices: THREE.Matrix4[] = [];
+const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius = 1.3) => {
+  const coreBranchGeometries: THREE.BufferGeometry[] = [];
+  const twigGeometries: THREE.BufferGeometry[] = [];
+  const rootGeometries: THREE.BufferGeometry[] = [];
   const leafMatrices1: THREE.Matrix4[] = [];
   const leafMatrices2: THREE.Matrix4[] = [];
   const blossomMatrices: THREE.Matrix4[] = [];
-  const flowPaths: THREE.Vector3[][] = [];
+  const flowPaths: PathNode[][] = [];
+
+  const GROUND_Y = -5.0;
 
   const buildBranch = (
-    start: THREE.Vector3,
-    dir: THREE.Vector3,
+    startPos: THREE.Vector3,
+    startDir: THREE.Vector3,
     len: number,
-    rad: number,
+    startRad: number,
     depth: number,
     isTrunk: boolean,
-    currentPath: THREE.Vector3[]
+    currentPath: PathNode[]
   ) => {
-    // Branch curvature: break segment into multiple pieces for organic flow
-    const segments = isTrunk ? 4 : (depth > 2 ? 3 : 2);
-    let currentStart = start.clone();
-    let currentDir = dir.clone();
+    const segments = 8; // High segments for ultra-smooth curving
     
-    // Asymmetrical wind/growth bias
-    const windBias = new THREE.Vector3(0.08, 0, 0.04);
+    const curvePoints: THREE.Vector3[] = [startPos.clone()];
+    const curveRadii: number[] = [startRad];
+    
+    let currentStart = startPos.clone();
+    let currentDir = startDir.clone();
+    let currentRad = startRad;
 
     for(let s = 0; s < segments; s++) {
       const segLen = len / segments;
       const end = currentStart.clone().add(currentDir.clone().multiplyScalar(segLen));
-      const midPoint = currentStart.clone().add(currentDir.clone().multiplyScalar(segLen / 2));
+      const nextRad = startRad * (1 - ((s + 1) / segments) * 0.15);
       
-      const matrix = new THREE.Matrix4();
-      const up = new THREE.Vector3(0, 1, 0);
-      const quaternion = new THREE.Quaternion().setFromUnitVectors(up, currentDir);
+      curvePoints.push(end.clone());
+      curveRadii.push(nextRad);
       
-      // Taper rad slightly along segments for organic thickness
-      const segRad = rad * (1 - (s / segments) * 0.15);
-      matrix.compose(midPoint, quaternion, new THREE.Vector3(segRad, segLen, segRad));
+      currentPath.push({ pos: currentStart.clone(), dir: currentDir.clone(), radius: currentRad });
       
-      if (depth > 2) mainBranchMatrices.push(matrix);
-      else twigMatrices.push(matrix);
-
-      currentPath.push(midPoint.clone());
       currentStart = end;
+      currentRad = nextRad;
 
-      // Curve dynamically based on depth
-      currentDir.add(windBias).normalize();
-      if (depth < 4) {
-        currentDir.lerp(new THREE.Vector3(0, 1, 0), 0.08).normalize(); // Reaching for sun
+      currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 0.15);
+      if (!isTrunk) {
+         // Elegant Oak-style reaching: out and up
+         const outDir = new THREE.Vector3(currentStart.x, 0, currentStart.z).normalize();
+         if (outDir.lengthSq() > 0.01) {
+             currentDir.lerp(outDir, 0.04).normalize(); // Spread outwards
+         }
+         currentDir.lerp(new THREE.Vector3(0, 1, 0), 0.06).normalize(); // Reach for the sky
       }
     }
     
+    currentPath.push({ pos: currentStart.clone(), dir: currentDir.clone(), radius: currentRad });
+
+    if (curvePoints.length > 1) {
+      const curve = new THREE.CatmullRomCurve3(curvePoints);
+      const tubeGeo = new TaperedTubeGeometry(curve, segments * 8, curveRadii, 16); // High poly for perfectly round, smooth branches
+      
+      const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
+      targetArray.push(tubeGeo);
+      
+      // Cap at the very end of the main trunk
+      if (depth === 0) {
+        const capSphere = new THREE.SphereGeometry(currentRad * 0.95, 12, 12);
+        capSphere.applyMatrix4(new THREE.Matrix4().setPosition(currentStart));
+        targetArray.push(capSphere);
+      }
+    }
+
     const end = currentStart;
 
     // Leaves
     if (depth <= 2) {
-      // Natural clustering with gaps
-      const numLeaves = depth === 0 ? 14 : 7;
+      const numLeaves = depth === 0 ? 30 : 15;
       for (let i = 0; i < numLeaves; i++) {
-        // Create visible gaps: occasionally skip dense clusters to allow sunlight
         if (depth === 1 && Math.random() > 0.8) continue;
-
         const leafMat = new THREE.Matrix4();
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
@@ -75,37 +130,32 @@ const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadiu
           Math.sin(phi) * Math.sin(theta),
           Math.cos(phi)
         );
-        leafDir.y = Math.abs(leafDir.y) + 0.2; // Bias slightly upwards
+        leafDir.y = Math.abs(leafDir.y) + 0.2;
         leafDir.normalize();
 
         const leafQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), leafDir);
         leafQ.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2));
         
-        // Spread leaves in a wider, more natural cluster volume
-        const spread = rad * (10.0 + Math.random() * 4.0);
+        const spread = startRad * (10.0 + Math.random() * 4.0);
         const offset = new THREE.Vector3((Math.random() - 0.5) * spread, (Math.random() - 0.2) * spread * 0.8, (Math.random() - 0.5) * spread);
         const leafPos = end.clone().add(offset);
         
-        // Age/Size variation
-        const leafScale = 0.7 + Math.random() * 1.6;
+        const leafScale = 0.35 + Math.random() * 0.25;
         leafMat.compose(leafPos, leafQ, new THREE.Vector3(leafScale, leafScale, leafScale));
         
-        // Distribute among multiple meshes for color/shape variation
         if (Math.random() > 0.5) leafMatrices1.push(leafMat);
         else leafMatrices2.push(leafMat);
       }
-      flowPaths.push([...currentPath, end.clone()]);
+      flowPaths.push([...currentPath]);
     }
 
     if (depth === 0) return;
 
-    // Banyan branching: Heavy primary splits, dense secondary hierarchy
+    // Banyan branching
     const numBranches = isTrunk ? (Math.random() > 0.1 ? 3 : 2) : (Math.random() > 0.3 ? 2 : 3);
     for (let i = 0; i < numBranches; i++) {
-      const spreadAngle = isTrunk ? (Math.PI / 3) * (0.4 + Math.random() * 0.6) : (Math.PI / 4) * (0.6 + Math.random() * 0.8);
-      
-      // Asymmetrical branching rotation
-      const rotAngle = (Math.PI * 2 * i) / numBranches + (Math.random() * 1.5 - 0.75);
+      const spreadAngle = isTrunk ? (Math.PI / 6) * (0.7 + Math.random() * 0.4) : (Math.PI / 7) * (0.6 + Math.random() * 0.4); // Tighter, more elegant forks
+      const rotAngle = (Math.PI * 2 * i) / numBranches + (Math.random() * 1.0 - 0.5);
 
       const newDir = currentDir.clone();
       const tangent = new THREE.Vector3(1, 0, 0);
@@ -115,90 +165,102 @@ const generateInstancedTree = (iterations = 7, initialLength = 4.0, initialRadiu
       newDir.applyAxisAngle(tangent, spreadAngle);
       newDir.applyAxisAngle(currentDir, rotAngle);
 
-      // Gravity droop on heavier lower branches (Banyan style curvature)
       if (!isTrunk && depth > 2 && newDir.y < 0.7) {
         newDir.lerp(new THREE.Vector3(0, -1, 0), 0.35).normalize();
       } else {
-        newDir.lerp(new THREE.Vector3(0, 1, 0), 0.15).normalize(); // Reach up
+        newDir.lerp(new THREE.Vector3(0, 1, 0), 0.15).normalize();
       }
 
-      const nextLen = len * (0.7 + Math.random() * 0.25);
-      const nextRad = rad * (0.65 + Math.random() * 0.1);
+      const nextLen = isTrunk ? len * 0.7 : len * (0.75 + Math.random() * 0.2);
+      const nextRad = currentRad * (0.75 + Math.random() * 0.05); // Less abrupt radius jump at joints
 
-      // Recursive clone
       buildBranch(end, newDir, nextLen, nextRad, depth - 1, false, [...currentPath]);
     }
   };
 
+  // Start building the core tree
   buildBranch(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true, []);
 
-  return { mainBranchMatrices, twigMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths };
-};
+  // Explicitly spawn a balancing branch on the right side (to fix the bare spot in the screenshot)
+  buildBranch(
+    new THREE.Vector3(0.5, 1.8, 0.2), // Midway up the trunk on the right
+    new THREE.Vector3(1.0, 0.4, 0.3).normalize(), // Pointing right and slightly up/forward
+    initialLength * 0.7, 
+    initialRadius * 0.65, 
+    iterations - 1, 
+    false, 
+    []
+  );
 
-// ─── GENERATE TREE BASE (ROOTS & ROCKS) ─────────────────────────────────────────
-const generateTreeBase = () => {
-  const rootMatrices: THREE.Matrix4[] = [];
+  // ─── GENERATE TREE BASE (ROOTS & ROCKS) ─────────────────────────────────────────
   const rockMatrices: THREE.Matrix4[] = [];
-  const grassMatrices: THREE.Matrix4[] = [];
 
-  // Generate Organic Tangled Roots (10x Upgrade)
+  // Generate Organic Tangled Roots (Grounded)
   const numRoots = 14;
   for (let i = 0; i < numRoots; i++) {
     const angle = (Math.PI * 2 * i) / numRoots + (Math.random() * 0.5);
     const dir = new THREE.Vector3(Math.cos(angle), -0.2, Math.sin(angle)).normalize();
     
-    let currentPos = new THREE.Vector3(0, -1.2, 0); // Start higher on the trunk for a nice root flare
+    let currentPos = new THREE.Vector3(0, -1.2, 0); 
     let currentDir = dir.clone();
-    let rad = 0.95;
-    let len = 1.2;
+    let rad = 0.4 + Math.random() * 0.4;
+    let len = 0.8 + Math.random() * 2.0;
 
-    for (let j = 0; j < 6; j++) {
-      const nextPos = currentPos.clone().add(currentDir.clone().multiplyScalar(len));
-      const midPoint = currentPos.clone().add(currentDir.clone().multiplyScalar(len / 2));
+    const rootPoints: THREE.Vector3[] = [currentPos.clone()];
+    const rootRadii: number[] = [rad];
+
+    for (let j = 0; j < 8; j++) {
+      let nextPos = currentPos.clone().add(currentDir.clone().multiplyScalar(len));
+      let nextRad = rad * 0.45;
       
-      const matrix = new THREE.Matrix4();
-      const up = new THREE.Vector3(0, 1, 0);
-      const quaternion = new THREE.Quaternion().setFromUnitVectors(up, currentDir);
-      
-      matrix.compose(midPoint, quaternion, new THREE.Vector3(rad, len, rad));
-      rootMatrices.push(matrix);
-      
-      // Spawn Secondary Rootlets occasionally
+      // Ground clamping
+      if (nextPos.y <= GROUND_Y) {
+         nextPos.y = GROUND_Y - 0.2; // Sink slightly
+         currentDir.y = 0;
+         currentDir.normalize();
+      }
+
+      rootPoints.push(nextPos.clone());
+      rootRadii.push(nextRad);
+
+      // Spawn Secondary Rootlets
       if (Math.random() > 0.5 && j > 1 && j < 5) {
          const rootletDir = currentDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() > 0.5 ? 1 : -1) * 0.8).normalize();
          rootletDir.y -= 0.5;
          rootletDir.normalize();
-         const rMid = currentPos.clone().add(rootletDir.clone().multiplyScalar(len * 0.4));
-         const rMat = new THREE.Matrix4();
-         rMat.compose(rMid, new THREE.Quaternion().setFromUnitVectors(up, rootletDir), new THREE.Vector3(rad * 0.4, len * 0.8, rad * 0.4));
-         rootMatrices.push(rMat);
+         let rEnd = currentPos.clone().add(rootletDir.clone().multiplyScalar(len * 0.6));
+         if (rEnd.y <= GROUND_Y) rEnd.y = GROUND_Y - 0.2;
+         
+         const rootletPoints = [currentPos.clone(), rEnd];
+         const rootletRadii = [rad * 0.5, rad * 0.1];
+         const rootletCurve = new THREE.CatmullRomCurve3(rootletPoints);
+         const rootletGeo = new TaperedTubeGeometry(rootletCurve, 4, rootletRadii, 5);
+         rootGeometries.push(rootletGeo);
       }
 
       currentPos = nextPos;
-      // Roots go deeper and spread out dramatically
       currentDir.lerp(new THREE.Vector3(currentDir.x * 1.5, -2, currentDir.z * 1.5), 0.5).normalize();
       currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 0.8);
-      rad *= 0.65;
+      rad = nextRad;
       len *= 0.85;
       
-      if (currentPos.y < -5.5) break;
+      if (currentPos.y < GROUND_Y - 0.5) break; 
+    }
+    
+    if (rootPoints.length > 1) {
+      const rootCurve = new THREE.CatmullRomCurve3(rootPoints);
+      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 4, rootRadii, 12);
+      rootGeometries.push(rootGeo);
     }
   }
 
-  // Generate Rocks
-  for (let i = 0; i < 15; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 1.5 + Math.random() * 4.0;
-    const pos = new THREE.Vector3(Math.cos(angle) * dist, -2.5 + Math.random() * 0.5, Math.sin(angle) * dist);
-    
-    const scale = 0.2 + Math.random() * 0.6;
-    const matrix = new THREE.Matrix4();
-    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize(), Math.random() * Math.PI);
-    matrix.compose(pos, q, new THREE.Vector3(scale, scale * 0.7, scale));
-    rockMatrices.push(matrix);
-  }
+  // Grounded Rocks removed
 
-  return { rootMatrices, rockMatrices, grassMatrices };
+  const mergedBranches = coreBranchGeometries.length > 0 ? BufferGeometryUtils.mergeGeometries(coreBranchGeometries) : new THREE.BufferGeometry();
+  const mergedTwigs = twigGeometries.length > 0 ? BufferGeometryUtils.mergeGeometries(twigGeometries) : new THREE.BufferGeometry();
+  const mergedRoots = rootGeometries.length > 0 ? BufferGeometryUtils.mergeGeometries(rootGeometries) : new THREE.BufferGeometry();
+
+  return { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths };
 };
 
 // ─── SHADER INJECTIONS ────────────────────────────────────────────────────────
@@ -255,23 +317,38 @@ float snoise(vec3 v){
 }
 `;
 
-const setupBarkMaterial = (material: THREE.MeshStandardMaterial) => {
+const setupBarkMaterial = (material: THREE.MeshStandardMaterial, customUniforms: any, isTwig = false) => {
   material.onBeforeCompile = (shader) => {
+    if (isTwig) shader.uniforms.uSeason = customUniforms.current.uSeason;
+
     shader.vertexShader = `
-      varying vec2 vInstUv;
+      varying vec2 vUvScale;
       varying vec3 vWorldPos;
       ${shader.vertexShader}
     `.replace(
       `#include <begin_vertex>`,
       `
       #include <begin_vertex>
-      vInstUv = uv;
-      vWorldPos = (instanceMatrix * vec4(position, 1.0)).xyz;
+      vUvScale = uv; // Fallback
+      vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
       `
     );
 
+    const twigDissolve = isTwig ? `
+      float wrapSeason = min(uSeason, abs(uSeason - 1.0));
+      float fade = 1.0;
+      if (wrapSeason > 0.6) {
+         fade = 1.0 - smoothstep(0.6, 0.75, wrapSeason);
+      }
+      float dissolveNoise = snoise(vWorldPos * 10.0);
+      if (fade < 0.99 && dissolveNoise > (fade * 2.0 - 1.0)) {
+          discard;
+      }
+    ` : "";
+
     shader.fragmentShader = `
-      varying vec2 vInstUv;
+      uniform float uSeason;
+      varying vec2 vUvScale;
       varying vec3 vWorldPos;
       ${snoiseGLSL}
       ${shader.fragmentShader}
@@ -280,10 +357,10 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial) => {
       `
       #include <color_fragment>
       
-      // Procedural Bark Texture
-      float n = snoise(vec3(vInstUv.x * 25.0, vInstUv.y * 2.0, vWorldPos.y * 0.1));
-      n += snoise(vec3(vInstUv.x * 60.0, vInstUv.y * 10.0, 0.0)) * 0.3;
-      n += snoise(vec3(vInstUv.x * 120.0, vInstUv.y * 20.0, 0.0)) * 0.15;
+      // Procedural Bark Texture mapped strictly via World Position for seamlessness across merged geometry
+      float n = snoise(vec3(vWorldPos.x * 2.5, vWorldPos.y * 1.5, vWorldPos.z * 2.5));
+      n += snoise(vec3(vWorldPos.x * 15.0, vWorldPos.y * 10.0, vWorldPos.z * 15.0)) * 0.3;
+      n += snoise(vec3(vWorldPos.x * 40.0, vWorldPos.y * 20.0, vWorldPos.z * 40.0)) * 0.22;
       
       vec3 color1 = vec3(0.12, 0.09, 0.06); // Deep rich brown
       vec3 color2 = vec3(0.24, 0.18, 0.12); // Lighter brown
@@ -294,13 +371,14 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial) => {
       // Add moss on the "North" side (based on world position / normal approximation)
       float mossMask = smoothstep(0.2, 0.8, snoise(vWorldPos * 0.5) + vWorldPos.z * 0.05);
       diffuseColor = vec4(mix(barkColor, mossColor, mossMask * 0.4), 1.0);
+      ${twigDissolve}
       `
     );
   };
 };
 
 // ─── KNOWLEDGE FLOW SYSTEM ──────────────────────────────────────────────────────
-const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], maxCount: number }) => {
+const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: PathNode[][], maxCount: number }) => {
   const particleCount = maxCount;
   const pointsRef = useRef<THREE.Points>(null);
   const reducedMotion = useReducedMotion();
@@ -319,6 +397,7 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
       progress: Math.random(),
       speed: 0.08 + Math.random() * 0.15,
       pauseTimer: 0,
+      angle: Math.random() * Math.PI * 2, // Surface rotation angle around branch
       id: i
     }));
   }, [paths, particleCount]);
@@ -345,7 +424,7 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
         void main() {
           vAlpha = alpha;
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = (18.0 / -mvPosition.z);
+          gl_PointSize = (12.0 / -mvPosition.z);
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -356,31 +435,39 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
           float dist = length(coord);
           if(dist > 0.5) discard;
           float glow = pow(1.0 - (dist * 2.0), 1.5);
-          gl_FragColor = vec4(1.0, 0.85, 0.3, glow * vAlpha * 0.8);
+          gl_FragColor = vec4(1.0, 0.7, 0.1, glow * vAlpha); // Golden amber sap flow
         }
       `,
       transparent: true,
       blending: THREE.AdditiveBlending,
-      depthWrite: false
+      depthWrite: false,
+      depthTest: false // Renders on top of bark so they look like glowing surface veins
     });
   }, []);
 
+  useEffect(() => {
+    return () => {
+      geo.dispose();
+      mat.dispose();
+    };
+  }, [geo, mat]);
+
   useFrame((_, delta) => {
     if (!pointsRef.current || paths.length === 0) return;
-    
-    // Stop updating if mobile to save battery/performance
     if (isMobile && !reducedMotion) return;
 
     const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
     const alphas = pointsRef.current.geometry.attributes.alpha.array as Float32Array;
     
+    // Up vector for tangent calculations
+    const globalUp = new THREE.Vector3(0, 1, 0);
+    
     particleData.forEach((p, i) => {
       if (reducedMotion) {
-        // Distribute them evenly to form static glowing paths
         p.pathIndex = i % paths.length;
         p.progress = (i / particleCount) * paths.length;
         p.progress = p.progress % 1.0;
-        p.pauseTimer = 1.0; // keep alpha bright
+        p.pauseTimer = 1.0; 
       } else {
         if (p.pauseTimer > 0) {
            p.pauseTimer -= delta;
@@ -392,6 +479,7 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
         if (p.progress >= 1.0) {
           p.progress = 0;
           p.pathIndex = Math.floor(Math.random() * paths.length);
+          p.angle = Math.random() * Math.PI * 2;
         }
       }
       
@@ -405,19 +493,34 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
       const p1 = path[iIdx];
       const p2 = path[Math.min(iIdx + 1, path.length - 1)];
       
-      const x = p1.x + (p2.x - p1.x) * t;
-      const y = p1.y + (p2.y - p1.y) * t;
-      const z = p1.z + (p2.z - p1.z) * t;
+      // Center position
+      const cx = p1.pos.x + (p2.pos.x - p1.pos.x) * t;
+      const cy = p1.pos.y + (p2.pos.y - p1.pos.y) * t;
+      const cz = p1.pos.z + (p2.pos.z - p1.pos.z) * t;
       
-      const noise = reducedMotion ? 0 : Math.sin(p.progress * 30.0 + p.id) * 0.15;
+      const radius = p1.radius + (p2.radius - p1.radius) * t;
       
-      positions[i*3] = x + noise;
-      positions[i*3+1] = y;
-      positions[i*3+2] = z + noise;
+      // Calculate surface tangent
+      const dir = p1.dir.clone().lerp(p2.dir, t).normalize();
+      const right = new THREE.Vector3().crossVectors(dir, globalUp).normalize();
+      if (right.lengthSq() < 0.01) { right.set(1, 0, 0); } // Fallback if pointing straight up
+      const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+      
+      // Spiral slightly around branch over time
+      const currentAngle = p.angle + (reducedMotion ? 0 : p.progress * 4.0);
+      
+      // Offset by radius to sit right on the bark (slightly inside to look like glowing sap veins)
+      const offset = right.clone().multiplyScalar(Math.cos(currentAngle))
+        .add(up.clone().multiplyScalar(Math.sin(currentAngle)))
+        .multiplyScalar(radius * 0.98); // Flush with bark
+
+      positions[i*3] = cx + offset.x;
+      positions[i*3+1] = cy + offset.y;
+      positions[i*3+2] = cz + offset.z;
       
       alphas[i] = reducedMotion 
-        ? 0.5 + Math.sin(i * 13.0) * 0.3 // static varied brightness
-        : Math.sin(p.progress * Math.PI) * (p.pauseTimer > 0 ? 1.0 : 0.8);
+        ? 0.5 + Math.sin(i * 13.0) * 0.3
+        : Math.sin(p.progress * Math.PI) * (p.pauseTimer > 0 ? 1.0 : 0.8) * 0.9;
     });
     pointsRef.current.geometry.attributes.position.needsUpdate = true;
     pointsRef.current.geometry.attributes.alpha.needsUpdate = true;
@@ -428,43 +531,65 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: THREE.Vector3[][], ma
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
-
 export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [number, number, number] }) => {
   const { scrollYProgress } = useScroll();
   const { settings } = useQualityStore();
   const reducedMotion = useReducedMotion();
-  const mainBranchMeshRef = useRef<THREE.InstancedMesh>(null);
-  const twigMeshRef = useRef<THREE.InstancedMesh>(null);
   const leafMeshRef1 = useRef<THREE.InstancedMesh>(null);
   const leafMeshRef2 = useRef<THREE.InstancedMesh>(null);
   const blossomMeshRef = useRef<THREE.InstancedMesh>(null);
-  const rootMeshRef = useRef<THREE.InstancedMesh>(null);
-  const rockMeshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   
   const customUniforms = useRef({ uTime: { value: 0 }, uSeason: { value: 0 } });
 
-  const { mainBranchMatrices, twigMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths } = useMemo(() => generateInstancedTree(7, 4.0, 1.3), []);
-  const { rootMatrices, rockMatrices } = useMemo(() => generateTreeBase(), []);
+  // Restore 7 iterations for a full canopy, but separate the twigs to dissolve them in winter
+  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths } = useMemo(() => generateSeamlessTree(7, 5.0, 1.2), []);
 
-  const leafTexture = useLoader(THREE.TextureLoader, '/textures/realistic_leaf.png');
-  leafTexture.colorSpace = THREE.SRGBColorSpace;
 
   // Geometry
-  const mainBranchGeo = useMemo(() => new THREE.CylinderGeometry(0.65, 1.0, 1, 9, 1), []);
-  const twigGeo = useMemo(() => new THREE.CylinderGeometry(0.3, 1.0, 1, 5, 1), []);
-  const rootGeo = useMemo(() => new THREE.CylinderGeometry(0.65, 1.0, 1, 7, 1), []);
-  const rockGeo = useMemo(() => new THREE.IcosahedronGeometry(1, 1), []);
-  const leafGeo1 = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(1.5, 1.5);
-    geo.translate(0, 0.75, 0); 
+  // 3D Leaf Geometry Generator using ExtrudeGeometry for perfect smoothness
+  const create3DLeaf = (width: number, height: number) => {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0); // Stem
+    // Right half
+    shape.bezierCurveTo(width * 0.5, height * 0.2, width * 0.5, height * 0.8, 0, height);
+    // Left half
+    shape.bezierCurveTo(-width * 0.5, height * 0.8, -width * 0.5, height * 0.2, 0, 0);
+
+    const extrudeSettings = {
+      depth: 0.005, // Paper thin
+      bevelEnabled: true,
+      bevelSegments: 1,
+      steps: 1,
+      bevelSize: 0.005,
+      bevelThickness: 0.005
+    };
+
+    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    
+    // Apply 3D curve (cupping and droop)
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      let x = pos.getX(i);
+      let y = pos.getY(i);
+      let z = pos.getZ(i);
+      
+      // Cup the leaf along the X axis
+      z += Math.abs(x) * 0.2;
+      // Bend the leaf along the Y axis (droop)
+      z -= Math.sin((y / height) * Math.PI) * 0.2;
+      
+      pos.setXYZ(i, x, y, z);
+    }
+    
+    geo.computeVertexNormals();
+    geo.center(); // Center geometry
+    geo.translate(0, height * 0.5, 0); // Move base to origin
     return geo;
-  }, []);
-  const leafGeo2 = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(1.1, 1.7); // Narrower, longer leaf for variation
-    geo.translate(0, 0.85, 0); 
-    return geo;
-  }, []);
+  };
+
+  const leafGeo1 = useMemo(() => create3DLeaf(0.8, 1.2), []);
+  const leafGeo2 = useMemo(() => create3DLeaf(0.6, 1.4), []);
 
   const blossomGeo = useMemo(() => {
     const geo = new THREE.PlaneGeometry(1.0, 1.0);
@@ -481,14 +606,16 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
 
   // Materials
   const mainBarkMat = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0.0 });
-    setupBarkMaterial(mat);
+    const mat = new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0.05 }); // Slight sheen for elegance
+    setupBarkMaterial(mat, customUniforms);
     return mat;
   }, []);
 
-  const rockMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: 0x4a4a4a, roughness: 0.8, metalness: 0.1
-  }), []);
+  const twigMat = useMemo(() => {
+    const mat = new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0.05, transparent: true, depthWrite: true }); 
+    setupBarkMaterial(mat, customUniforms, true); // true = isTwig (will dissolve in winter)
+    return mat;
+  }, []);
 
   const blossomMat = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
@@ -534,7 +661,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
 
   const leafMat = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      map: leafTexture, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.6, metalness: 0.0, color: 0xffffff
+      side: THREE.DoubleSide, roughness: 0.6, metalness: 0.05, color: 0xffffff
     });
 
     mat.onBeforeCompile = (shader) => {
@@ -543,16 +670,16 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       
       const windCode = settings.windComplexity === "none" ? `vec3 transformed = pos;` :
         settings.windComplexity === "simple" ? `
-          float sway = sin(uTime * 0.8 + worldPos.z * 0.2) * 0.05 * scale;
+          float sway = sin(uTime * 0.8 + worldPos.z * 0.2) * 0.02 * scale;
           pos.x += sway * pos.y;
           vec3 transformed = pos;
         ` : `
-          float flutter = sin(uTime * 4.0 + worldPos.x * 5.0 + worldPos.y * 3.0) * 0.15 * scale;
+          float flutter = sin(uTime * 2.5 + worldPos.x * 5.0 + worldPos.y * 3.0) * 0.025 * scale;
           float s = sin(flutter);
           float c = cos(flutter);
           mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
           pos = rotX * pos;
-          float sway = sin(uTime * 0.8 + worldPos.z * 0.2 + worldPos.x * 0.1) * 0.1 * scale;
+          float sway = sin(uTime * 0.5 + worldPos.z * 0.2 + worldPos.x * 0.1) * 0.03 * scale;
           pos.x += sway * pos.y;
           vec3 transformed = pos;
         `;
@@ -560,10 +687,12 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       shader.vertexShader = `
         uniform float uTime;
         uniform float uSeason;
+        varying vec2 vUvLeaf;
         ${shader.vertexShader}
       `.replace(
         `#include <begin_vertex>`,
         `
+        vUvLeaf = uv;
         vec3 pos = position;
         vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float randDelay = fract(sin(worldPos.x * 12.33 + worldPos.z * 4.31) * 43.11) * 0.1;
@@ -584,14 +713,15 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       
       shader.fragmentShader = `
         uniform float uSeason;
+        varying vec2 vUvLeaf;
         ${shader.fragmentShader}
       `.replace(
         `#include <color_fragment>`,
         `
         #include <color_fragment>
-        vec3 springColor = vec3(0.6, 0.9, 0.3);
-        vec3 summerColor = vec3(0.2, 0.6, 0.15);
-        vec3 autumnColor = vec3(0.9, 0.4, 0.05);
+        vec3 springColor = vec3(0.5, 0.8, 0.2);
+        vec3 summerColor = vec3(0.15, 0.5, 0.1);
+        vec3 autumnColor = vec3(0.8, 0.3, 0.05);
         
         vec3 seasonColor;
         if (uSeason < 0.25) {
@@ -602,23 +732,18 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
            seasonColor = autumnColor;
         }
         
-        float lum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-        diffuseColor.rgb = mix(diffuseColor.rgb, seasonColor * lum * 2.2, 0.65);
+        // Procedural gradient: darker at base (vUvLeaf.y = 0), lighter at tip (vUvLeaf.y = 1)
+        float gradient = vUvLeaf.y;
+        vec3 leafColor = mix(seasonColor * 0.4, seasonColor * 1.2, gradient);
+        
+        diffuseColor.rgb = leafColor;
         `
       );
     };
     return mat;
-  }, [leafTexture, settings.windComplexity]);
+  }, [settings.windComplexity]);
 
   useEffect(() => {
-    if (mainBranchMeshRef.current) {
-      mainBranchMatrices.forEach((mat, i) => mainBranchMeshRef.current!.setMatrixAt(i, mat));
-      mainBranchMeshRef.current.instanceMatrix.needsUpdate = true;
-    }
-    if (twigMeshRef.current) {
-      twigMatrices.forEach((mat, i) => twigMeshRef.current!.setMatrixAt(i, mat));
-      twigMeshRef.current.instanceMatrix.needsUpdate = true;
-    }
     if (leafMeshRef1.current) {
       leafMatrices1.forEach((mat, i) => leafMeshRef1.current!.setMatrixAt(i, mat));
       leafMeshRef1.current.instanceMatrix.needsUpdate = true;
@@ -631,58 +756,45 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       blossomMatrices.forEach((mat, i) => blossomMeshRef.current!.setMatrixAt(i, mat));
       blossomMeshRef.current.instanceMatrix.needsUpdate = true;
     }
-    if (rootMeshRef.current) {
-      rootMatrices.forEach((mat, i) => rootMeshRef.current!.setMatrixAt(i, mat));
-      rootMeshRef.current.instanceMatrix.needsUpdate = true;
-    }
-    if (rockMeshRef.current) {
-      rockMatrices.forEach((mat, i) => rockMeshRef.current!.setMatrixAt(i, mat));
-      rockMeshRef.current.instanceMatrix.needsUpdate = true;
-    }
-  }, [mainBranchMatrices, twigMatrices, leafMatrices1, leafMatrices2, blossomMatrices, rootMatrices, rockMatrices]);
+  }, [leafMatrices1, leafMatrices2, blossomMatrices, rockMatrices]);
 
   // Memory Cleanup
   useEffect(() => {
     return () => {
-      mainBranchGeo.dispose();
-      twigGeo.dispose();
-      rootGeo.dispose();
-      rockGeo.dispose();
       leafGeo1.dispose();
       leafGeo2.dispose();
       blossomGeo.dispose();
-      
+      mergedBranches.dispose();
+      mergedTwigs.dispose();
+      mergedRoots.dispose();
       mainBarkMat.dispose();
-      rockMat.dispose();
+      twigMat.dispose();
       blossomMat.dispose();
       leafMat.dispose();
     };
-  }, [mainBranchGeo, twigGeo, rootGeo, rockGeo, leafGeo1, leafGeo2, blossomGeo, mainBarkMat, rockMat, blossomMat, leafMat]);
+  }, [leafGeo1, leafGeo2, blossomGeo, mergedBranches, mergedTwigs, mergedRoots, mainBarkMat, twigMat, blossomMat, leafMat]);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    customUniforms.current.uTime.value = reducedMotion ? 0 : t; // Freeze time for shader animations if reduced motion
+    customUniforms.current.uTime.value = reducedMotion ? 0 : t;
     customUniforms.current.uSeason.value = scrollYProgress.get();
     
     if (groupRef.current && !reducedMotion) {
-      groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.015;
-      groupRef.current.rotation.x = Math.sin(t * 0.4 + 1.0) * 0.01;
+      groupRef.current.rotation.z = Math.sin(t * 0.2) * 0.008;
+      groupRef.current.rotation.x = Math.sin(t * 0.25 + 1.0) * 0.005;
     }
   });
 
   return (
     <group ref={groupRef} position={position}>
-      {/* Roots */}
-      <instancedMesh ref={rootMeshRef} args={[rootGeo, mainBarkMat, rootMatrices.length]} castShadow receiveShadow />
+      {/* Seamless Roots Mesh */}
+      <mesh geometry={mergedRoots} material={mainBarkMat} castShadow receiveShadow />
 
-      {/* Rocks */}
-      <instancedMesh ref={rockMeshRef} args={[rockGeo, rockMat, rockMatrices.length]} castShadow receiveShadow />
-
-      {/* Main Branches */}
-      <instancedMesh ref={mainBranchMeshRef} args={[mainBranchGeo, mainBarkMat, mainBranchMatrices.length]} castShadow receiveShadow />
+      {/* Seamless Main Branches Mesh */}
+      <mesh geometry={mergedBranches} material={mainBarkMat} castShadow receiveShadow />
       
-      {/* Twigs */}
-      <instancedMesh ref={twigMeshRef} args={[twigGeo, mainBarkMat, twigMatrices.length]} castShadow receiveShadow />
+      {/* Tiny Twigs (Dissolve in Winter) */}
+      <mesh geometry={mergedTwigs} material={twigMat} castShadow receiveShadow />
       
       {/* Leaves (Multiple Meshes for Variation) */}
       <instancedMesh ref={leafMeshRef1} args={[leafGeo1, leafMat, leafMatrices1.length]} count={Math.floor(leafMatrices1.length * settings.leafDensity)} castShadow receiveShadow />
@@ -691,7 +803,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       {/* Blossoms */}
       <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} count={Math.floor(blossomMatrices.length * settings.leafDensity)} receiveShadow />
 
-      {/* Knowledge Flow Particles */}
+      {/* Knowledge Flow Particles - Glowing Surface Veins */}
       <KnowledgeFlowSystem paths={flowPaths} maxCount={settings.particleCount} />
     </group>
   );

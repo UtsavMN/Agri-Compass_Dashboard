@@ -4,11 +4,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Colors */
+  --color-knowledge-gold: #E5D08F;
+  --color-earth-black: #0A0900;
+  --color-growth-green: #7EC47E;
+  --color-alert-amber: #F59E0B;
+  --color-text-primary: #F5F0E8;
+  --color-text-secondary: rgba(245, 240, 232, 0.85);
+  --color-text-tertiary: rgba(245, 240, 232, 0.5);
+  --color-text-muted: rgba(245, 240, 232, 0.4);
+}
+
 /* ─── RESET ─────────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 /* ─── BASE ───────────────────────────────────────────────────────────────── */
@@ -124,6 +134,31 @@ p, .text-body {
   color: rgba(245, 240, 232, 0.7);
 }
 
+/* Subheading */
+.text-heading-2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+
+/* Caption — Small, muted, informational */
+.text-caption {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(245, 240, 232, 0.4);
+}
+
+/* Statistics — Tabular, monospaced numerals */
+.text-stat {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.0;
+}
+
 /* Layout & Rhythm */
 .prose-elegant {
   max-width: 65ch;
@@ -202,10 +237,15 @@ code, .font-mono, pre {
   background: linear-gradient(135deg, rgba(229, 208, 143, 0.25) 0%, rgba(229, 208, 143, 0.1) 100%);
   border-color: rgba(229, 208, 143, 0.7);
   box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba(229, 208, 143, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
+}
+
+.btn-premium:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .btn-ghost {
@@ -245,19 +285,16 @@ code, .font-mono, pre {
   transform-origin: left;
 }
 
+.btn-ghost:active {
+  transform: scale(0.97);
+  opacity: 0.8;
+}
+
 /* ─── UTILITIES ─────────────────────────────────────────────────── */
 .glow-gold {
   box-shadow: 0 0 40px rgba(229, 208, 143, 0.15);
 }
 
-.glass-card {
-  background: linear-gradient(145deg, rgba(26, 15, 5, 0.4) 0%, rgba(10, 9, 0, 0.7) 100%);
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05),
-              0 8px 32px rgba(0, 0, 0, 0.4);
-}
 
 /* Premium Card System (Apple/Stripe Tier Glass) */
 .premium-card {
@@ -322,7 +359,7 @@ code, .font-mono, pre {
     0 50px 100px -20px rgba(0, 0, 0, 1.0),
     0 0 80px rgba(229, 208, 143, 0.08), 
     inset 0 1px 1px rgba(255, 255, 255, 0.25);
-  transform: translateY(-4px) scale(1.005);
+  transform: translateY(-2px) scale(1.002);
 }
 
 .premium-card:hover::after {

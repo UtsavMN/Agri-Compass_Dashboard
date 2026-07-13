@@ -1,7 +1,10 @@
-import { useState, useRef } from"react";
-import { motion, useInView, AnimatePresence } from"framer-motion";
-import { techStack } from"../../constants/techStack";
-
+import { useState, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { techStack } from "../../constants/techStack";
+import { LAYOUT_SPRING, UI_SPRING } from "../../constants/springs";
+import { Typography } from "../primitives/Typography";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Container } from "../primitives/Container";
 export const TechSection = () => {
   const categories = ["Frontend","Backend","Auth","Database","Hosting","AI & APIs"];
   const [active, setActive] = useState("Frontend");
@@ -11,23 +14,25 @@ export const TechSection = () => {
   const filtered = techStack.filter((t) => t.category === active);
 
   return (
-    <section id="tech" ref={ref} className="py-32 bg-transparent">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="tech" ref={ref} className="bg-transparent">
+      <Container maxWidth="lg" paddingY="xl">
 
         <motion.div className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.85 }}>
-          <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+          transition={LAYOUT_SPRING}>
+          <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-4" color="gold">
             Technology
-          </p>
-          <h2 className="text-display-2 mb-4">
-            Built with{""}
-            <span className="text-[#E5D08F]">production-grade</span> tools.
-          </h2>
-          <p className="text-[#F5F0E8]/30 max-w-lg mx-auto">
+          </Typography>
+          <div className="mb-4">
+            <Typography variant="display-2">
+              Built with{" "}
+              <span className="text-[var(--color-knowledge-gold)]">production-grade</span> tools.
+            </Typography>
+          </div>
+          <Typography variant="body-md" color="secondary" className="max-w-lg mx-auto">
             Not a student prototype. A production system using industry-standard technologies.
-          </p>
+          </Typography>
         </motion.div>
 
         {/* Category filter */}
@@ -40,8 +45,8 @@ export const TechSection = () => {
               whileTap={{ scale: 0.97 }}
               className={`px-4 py-2 rounded-full text-xs font-mono transition-all duration-300 ${
                 active === cat
-                  ?"bg-[#E5D08F] text-[#0A0900] font-bold"
-                  :"border border-[#2A2720] text-[#F5F0E8]/40 hover:"
+                  ? "bg-[var(--color-knowledge-gold)] text-[var(--color-earth-black)] font-bold"
+                  : "border border-[var(--color-glass-border,rgba(255,255,255,0.06))] text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
               }`}
             >
               {cat}
@@ -50,34 +55,35 @@ export const TechSection = () => {
         </div>
 
         {/* Cards */}
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filtered.map((tech, i) => (
-              <motion.div
+              <GlassPanel
+                as={motion.div}
                 key={tech.name}
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: i * 0.055, duration: 0.4 }}
-                whileHover={{ y: -5, borderColor:"rgba(201,168,76,0.28)" }}
-                className="premium-card p-6 transition-all duration-300 cursor-default"
+                transition={{ ...UI_SPRING, delay: i * 0.055 }}
+                className="p-6 transition-all duration-300 cursor-default"
+                interaction="hover"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <p className="text-[#F5F0E8] font-semibold">{tech.name}</p>
-                  <span className="text-[9px] font-mono text-[#E5D08F]
-                                   border px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
+                  <Typography variant="body-md" color="primary" className="font-semibold">{tech.name}</Typography>
+                  <span className="text-[9px] font-mono text-[var(--color-knowledge-gold)]
+                                   border border-[var(--color-knowledge-gold)]/20 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
                     {tech.badge}
                   </span>
                 </div>
-                <p className="text-[#F5F0E8]/30 text-sm leading-relaxed">
-                  {tech.description}
-                </p>
-              </motion.div>
+                <div className="mb-0">
+                  <Typography variant="caption" color="muted">{tech.description}</Typography>
+                </div>
+              </GlassPanel>
             ))}
           </AnimatePresence>
         </motion.div>
-      </div>
+      </Container>
     </section>
   );
 };

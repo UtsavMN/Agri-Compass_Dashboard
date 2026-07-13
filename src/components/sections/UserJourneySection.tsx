@@ -1,7 +1,10 @@
-import { useRef, useState } from"react";
-import { motion, useInView, AnimatePresence } from"framer-motion";
-import { LAYOUT_SPRING } from"../../constants/springs";
-import { useAudio } from"../../hooks/useAudio";
+import { useRef, useState } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { useAudio } from "../../hooks/useAudio";
+import { Typography } from "../primitives/Typography";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Container } from "../primitives/Container";
 
 const journeySteps = [
   { icon:"📱", step:"1", title:"Opens AgriCompass", detail:"Farmer opens the app on any Android phone. Loads in under 3 seconds from Vercel's global CDN." },
@@ -23,25 +26,25 @@ export const UserJourneySection = () => {
   const { playClick, playGlass } = useAudio();
 
   return (
-    <section ref={ref} className="py-24 bg-transparent border-y border-white/10 z-10 relative">
-      <div className="max-w-7xl mx-auto px-6">
+    <section ref={ref} className="bg-transparent border-y border-[var(--color-glass-border,rgba(255,255,255,0.06))] z-10 relative">
+      <Container maxWidth="xl" paddingY="xl">
 
-        <motion.div className="text-center mb-14"
+        <motion.div className="text-center mb-16"
           initial={{ opacity: 0, y: 24 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={LAYOUT_SPRING}>
-          <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-3">
+          <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-4" color="gold">
             Farmer Journey
-          </p>
-          <h2 className="text-display-2 mb-6">
-            From opening the app to a{""}
-            <span className="text-[#E5D08F]">better harvest.</span>
-          </h2>
+          </Typography>
+          <Typography variant="display-2" className="mb-6">
+            From opening the app to a{" "}
+            <span className="text-[var(--color-knowledge-gold)]">better harvest.</span>
+          </Typography>
         </motion.div>
 
         <div className="relative">
           {/* Vertical connecting line on desktop */}
-          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#E5D08F]/20 via-[#E5D08F]/10 to-transparent" aria-hidden="true" />
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[var(--color-knowledge-gold)]/20 via-[var(--color-knowledge-gold)]/10 to-transparent" aria-hidden="true" />
 
           <div className="space-y-4">
             {journeySteps.map((step, i) => (
@@ -60,40 +63,46 @@ export const UserJourneySection = () => {
                 aria-controls={`step-detail-${i}`}
               >
                 {/* Content */}
-                <motion.div
-                  whileHover={{ borderColor:"rgba(201,168,76,0.25)" }}
-                  className={`flex-1 premium-card p-5 transition-all duration-300 ${
-                    activeStep === i ?"shadow-[0_0_25px_rgba(201,168,76,0.2)] scale-[1.02]" :""
+                <GlassPanel
+                  as={motion.div}
+                  whileHover={{ borderColor: "rgba(201,168,76,0.25)" }}
+                  className={`flex-1 p-5 transition-all duration-300 ${
+                    activeStep === i ? "shadow-[0_0_25px_rgba(201,168,76,0.2)] scale-[1.02]" : ""
                   }`}
+                  interaction="hover"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-xl" aria-hidden="true">{step.icon}</span>
                     <div>
-                      <span className="text-[10px] font-mono text-[#E5D08F]/50">Step {step.step}</span>
-                      <p className="text-[#F5F0E8]/70 text-sm font-semibold">{step.title}</p>
+                      <Typography variant="micro" className="text-[var(--color-knowledge-gold)]/50 block">Step {step.step}</Typography>
+                      <Typography variant="body-md" color="primary" className="font-semibold">{step.title}</Typography>
                     </div>
                   </div>
                   <AnimatePresence>
                     {activeStep === i && (
-                      <motion.p
+                      <motion.div
                         id={`step-detail-${i}`}
                         initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height:"auto" }}
+                        animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="text-[#F5F0E8]/38 text-xs leading-relaxed overflow-hidden"
+                        className="overflow-hidden"
                       >
-                        {step.detail}
-                      </motion.p>
+                        <div className="mt-2">
+                          <Typography variant="caption" color="muted" className="leading-relaxed">
+                            {step.detail}
+                          </Typography>
+                        </div>
+                      </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </GlassPanel>
 
                 {/* Centre dot */}
                 <div className="hidden md:flex w-4 flex-shrink-0 items-center justify-center mt-5" aria-hidden="true">
                   <div className={`w-3 h-3 rounded-full border-2 transition-all ${
                     activeStep === i
-                      ?"bg-[#E5D08F] border-[#E5D08F] shadow-[0_0_10px_rgba(201,168,76,0.5)]"
-                      :"bg-black/50 border-white/20"
+                      ? "bg-[var(--color-knowledge-gold)] border-[var(--color-knowledge-gold)] shadow-[0_0_10px_rgba(201,168,76,0.5)]"
+                      : "bg-black/50 border-white/20"
                   }`} />
                 </div>
 
@@ -104,13 +113,15 @@ export const UserJourneySection = () => {
           </div>
         </div>
 
-        <motion.p className="text-center text-[#F5F0E8]/18 text-xs font-mono mt-8"
+        <motion.div className="text-center mt-8"
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ ...LAYOUT_SPRING, delay: 1 }}>
-          Click any step to expand · Full experience at agri-compass-v3.vercel.app
-        </motion.p>
-      </div>
+          <Typography variant="micro" color="muted">
+            Click any step to expand · Full experience at agri-compass-v3.vercel.app
+          </Typography>
+        </motion.div>
+      </Container>
     </section>
   );
 };

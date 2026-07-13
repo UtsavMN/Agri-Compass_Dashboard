@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useReducedMotion } from "../../../hooks/useReducedMotion";
@@ -104,6 +104,13 @@ export const Fireflies = ({ count = 50 }: { count?: number }) => {
     };
     return material;
   }, []);
+
+  useEffect(() => {
+    return () => {
+      geo.dispose();
+      mat.dispose();
+    };
+  }, [geo, mat]);
 
   useFrame((state) => {
     if (!meshRef.current) return;

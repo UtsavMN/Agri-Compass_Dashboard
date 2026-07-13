@@ -16,7 +16,7 @@ const CompassLoader = ({ progress }: { progress: number }) => (
     >
       🧭
     </motion.div>
-    <div className="w-52 h-0.5 bg-[#2A2720] rounded-full overflow-hidden mb-5">
+    <div className="w-52 h-0.5 bg-[#2A2720] rounded-full overflow-hidden mb-6">
       <motion.div
         className="h-full bg-[#E5D08F] rounded-full"
         initial={{ width:"0%" }}

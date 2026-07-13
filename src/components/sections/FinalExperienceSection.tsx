@@ -29,13 +29,13 @@ export const FinalExperienceSection = () => {
     <section ref={ref} className="relative bg-transparent">
 
       {/* Highlight cards grid */}
-      <div className="py-24 border-y border-[#2A2720] bg-transparent">
+      <div className="py-16 border-y border-[#2A2720] bg-transparent">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div className="text-center mb-14"
             initial={{ opacity: 0, y: 24 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={LAYOUT_SPRING}>
-            <p className="text-[#E5D08F] text-xs tracking-[0.3em] uppercase font-mono mb-4">
+            <p className="label-super">
               Project Highlights
             </p>
             <h2 className="text-display-2 mb-4">
@@ -62,7 +62,7 @@ export const FinalExperienceSection = () => {
       </div>
 
       {/* Achievement Numbers */}
-      <div className="py-20 border-b border-[#2A2720] bg-transparent">
+      <div className="py-12 border-b border-[#2A2720] bg-transparent">
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
           {achievements.map((stat, i) => (
             <motion.div key={i}
@@ -80,14 +80,14 @@ export const FinalExperienceSection = () => {
       </div>
 
       {/* Open Source block */}
-      <div className="py-20 border-b border-[#2A2720] bg-transparent">
+      <div className="py-12 border-b border-[#2A2720] bg-transparent">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={LAYOUT_SPRING}
           >
-            <p className="text-[#E5D08F] text-xs font-mono uppercase tracking-[0.3em] mb-8">
+            <p className="label-super">
               Project Resources
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
@@ -135,7 +135,7 @@ export const FinalExperienceSection = () => {
       </div>
 
       {/* Massive CTA */}
-      <div className="relative py-48 overflow-hidden bg-transparent">
+      <div className="relative py-20 overflow-hidden bg-transparent">
         {/* Ambient gold glow */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-[700px] h-[700px] bg-[#E5D08F] rounded-full opacity-[0.035] blur-[140px]" />
@@ -143,7 +143,7 @@ export const FinalExperienceSection = () => {
 
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <motion.p
-            className="text-[#E5D08F] text-xs tracking-[0.35em] uppercase font-mono mb-7"
+            className="label-super mb-8"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}>
@@ -151,7 +151,7 @@ export const FinalExperienceSection = () => {
           </motion.p>
 
           <motion.h2
-            className="font-serif text-6xl md:text-7xl text-[#F5F0E8] mb-7 leading-tight"
+            className="font-serif text-6xl md:text-7xl text-[#F5F0E8] mb-8 leading-tight"
             initial={{ opacity: 0, y: 35 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -170,7 +170,7 @@ export const FinalExperienceSection = () => {
             deserve intelligent tools. We built this to help reach them.
           </motion.p>
 
-          <motion.div className="flex flex-col sm:flex-row gap-5 justify-center"
+          <motion.div className="flex flex-col sm:flex-row gap-6 justify-center"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

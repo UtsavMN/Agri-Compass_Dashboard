@@ -1,7 +1,10 @@
-import { useRef } from"react";
-import { motion, useInView } from"framer-motion";
-import { LAYOUT_SPRING } from"../../constants/springs";
-import { FramerCounter } from"../ui/FramerCounter";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { FramerCounter } from "../ui/FramerCounter";
+import { Typography } from "../primitives/Typography";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Container } from "../primitives/Container";
 
 const stats = [
   { value: 8,  suffix:"",  label:"Core features for complete farm intelligence" },
@@ -15,39 +18,41 @@ export const StatsSection = () => {
   const inView = useInView(ref, { once: true });
 
   return (
-    <section ref={ref} className="relative py-32 bg-transparent z-10">
-      <div className="max-w-6xl mx-auto px-6">
+    <section ref={ref} className="relative bg-transparent z-10">
+      <Container maxWidth="lg" paddingY="xl">
         
         <motion.div className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={LAYOUT_SPRING}>
-          <p className="label-super">
+          <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-4" color="gold">
             Scale & Impact
-          </p>
-          <h2 className="text-display-2 mb-4">
-            Built for a <span className="text-[#E5D08F] italic">state.</span>
-          </h2>
+          </Typography>
+          <Typography variant="display-2" className="mb-4">
+            Built for a <span className="text-[var(--color-knowledge-gold)] italic">state.</span>
+          </Typography>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
-            <motion.div
+            <GlassPanel
+              as={motion.div}
               key={i}
               initial={{ opacity: 0, y: 24 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
-              className="premium-card p-8 text-center flex flex-col items-center justify-center group"
+              className="p-8 text-center flex flex-col items-center justify-center group"
+              interaction="hover"
             >
-              <div className="text-display-2 text-[#E5D08F] mb-4 drop-shadow-[0_0_15px_rgba(229,208,143,0.3)] tabular-nums group-hover:scale-110 transition-transform duration-500" 
+              <div className="text-display-2 text-[var(--color-knowledge-gold)] mb-4 drop-shadow-[0_0_15px_rgba(229,208,143,0.3)] tabular-nums group-hover:scale-110 transition-transform duration-500" 
                    role="status" aria-live="polite" aria-label={`${stat.value}${stat.suffix} ${stat.label}`}>
                 <FramerCounter value={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="text-body-md text-center">{stat.label}</p>
-            </motion.div>
+              <Typography variant="body-md" className="text-center">{stat.label}</Typography>
+            </GlassPanel>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 };

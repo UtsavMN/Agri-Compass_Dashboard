@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import { LAYOUT_SPRING } from "../../constants/springs";
 interface KeynoteScreenshotProps {
   src: string;
   alt: string;
@@ -34,7 +34,7 @@ export const KeynoteScreenshot = ({ src, alt, tilt = "straight" }: KeynoteScreen
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        transition={LAYOUT_SPRING}
         style={{ transform }}
         className="relative w-full rounded-2xl md:rounded-3xl overflow-hidden bg-[#1A0F05]/60 backdrop-blur-3xl border border-white/10 pointer-events-auto"
       >
@@ -53,13 +53,19 @@ export const KeynoteScreenshot = ({ src, alt, tilt = "straight" }: KeynoteScreen
         </div>
 
         {/* The Image Wrapper */}
-        <div className="relative">
-          <img 
-            src={src} 
-            alt={alt} 
-            className="w-full h-auto block"
-            loading="lazy"
-          />
+        <div className="relative flex items-center justify-center min-h-[300px]">
+          {src ? (
+            <img 
+              src={src} 
+              alt={alt} 
+              className="w-full h-auto block"
+              loading="lazy"
+            />
+          ) : (
+            <div className="text-[#F5F0E8]/30 font-mono text-sm py-32 px-12 text-center border-2 border-dashed border-[#F5F0E8]/10 rounded-xl m-8">
+              Screenshot coming soon
+            </div>
+          )}
           
           {/* Glass Reflection Gradient overlay (Keynote style diagonal glare) */}
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent pointer-events-none mix-blend-overlay" />

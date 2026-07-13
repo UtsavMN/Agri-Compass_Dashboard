@@ -3,7 +3,7 @@ import { KeynoteScreenshot } from"../ui/KeynoteScreenshot";
 import { LAYOUT_SPRING } from"../../constants/springs";
 
 export const DashboardShowcaseSection = () => (
-  <section className="relative w-full flex flex-col items-center px-6 pb-32 z-20 pointer-events-none bg-transparent">
+  <section className="relative w-full flex flex-col items-center px-6 pb-12 z-20 pointer-events-none bg-transparent">
     <motion.div 
       initial={{ opacity: 0, y: 100 }}
       whileInView={{ opacity: 1, y: 0 }}

@@ -116,6 +116,13 @@ export const Butterflies = ({ count = 3 }: { count?: number }) => {
   const targetQuat = useMemo(() => new THREE.Quaternion(), []);
   const tempMat = useMemo(() => new THREE.Matrix4(), []);
 
+  useEffect(() => {
+    return () => {
+      butterflyGeo.dispose();
+      butterflyMat.dispose();
+    };
+  }, [butterflyGeo, butterflyMat]);
+
   useFrame((sceneState, delta) => {
     if (!meshRef.current) return;
     
