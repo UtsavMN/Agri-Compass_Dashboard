@@ -130,7 +130,7 @@ const nodeDetails: Record<string, {
 };
 
 const architectureFlow = [
-  { id:"farmer", label:"Farmer", icon:"👨🌾" },
+  { id:"farmer", label:"Farmer", icon:"🚜" },
   { id:"frontend", label:"React Frontend", icon:"⚛" },
   { id:"api", label:"REST API", icon:"🔗" },
   { id:"backend", label:"Spring Boot", icon:"☕" },
@@ -149,10 +149,10 @@ const SystemArchitecture = () => {
     <div className="flex flex-col items-center gap-12 w-full">
 
       {/* Flow diagram — horizontal pipeline */}
-      <div className="flex flex-row flex-wrap justify-center items-center gap-4 w-full max-w-5xl" role="group" aria-label="Architecture Flow">
+      <div className="flex flex-row overflow-x-auto justify-start lg:justify-center items-center gap-2 w-full max-w-full pb-6 px-4 scrollbar-hide" role="group" aria-label="Architecture Flow">
         {architectureFlow.map((node, i) => (
-          <div key={node.id} className="flex flex-row items-center">
-            <div className="w-28">
+          <div key={node.id} className="flex flex-row items-center flex-shrink-0">
+            <div className="w-32">
               <FlowNode
                 label={node.label}
                 icon={node.icon}
@@ -165,7 +165,7 @@ const SystemArchitecture = () => {
               />
             </div>
             {i < architectureFlow.length - 1 && (
-              <div className="hidden md:flex relative w-8 flex-col items-center justify-center -rotate-90">
+              <div className="hidden md:flex relative w-12 flex-col items-center justify-center">
                 <FlowArrow delay={i * 0.15} />
               </div>
             )}
@@ -244,7 +244,7 @@ const SystemArchitecture = () => {
 // ─── AUTH JOURNEY ─────────────────────────────────────────────────────────────
 const AuthJourney = () => {
   const steps = [
-    { icon:"👨🌾", label:"Farmer opens app", detail:"Browser loads React app from Vercel CDN" },
+    { icon:"🚜", label:"Farmer opens app", detail:"Browser loads React app from Vercel CDN" },
     { icon:"🔑", label:"Clerk Login", detail:"Clerk modal — email / Google / phone OTP" },
     { icon:"🎟", label:"JWT Generated", detail:"Clerk issues signed JWT with user ID as subject" },
     { icon:"🛡", label:"Spring Security", detail:"Backend validates JWT signature against Clerk's issuer URI" },
