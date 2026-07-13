@@ -8,12 +8,14 @@ interface ButtonProps extends HTMLMotionProps<"button"> {
   variant?: Variant;
   children: React.ReactNode;
   className?: string;
+  as?: any;
 }
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   children,
   className = '',
+  as,
   ...props
 }) => {
   const isPrimary = variant === 'primary';
@@ -69,8 +71,10 @@ export const Button: React.FC<ButtonProps> = ({
     y: 1
   };
 
+  const Component = as || motion.button;
+
   return (
-    <motion.button
+    <Component
       className={`focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E5D08F] ${className}`}
       style={baseStyle}
       whileHover={hoverProps}
@@ -79,6 +83,6 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {children}
-    </motion.button>
+    </Component>
   );
 };

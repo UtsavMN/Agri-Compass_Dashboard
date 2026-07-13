@@ -71,7 +71,7 @@ export const Navbar = () => {
           </motion.button>
           
           <motion.a
-            href="https://github.com/AgriCompass/agricompass"
+            href="https://github.com/UtsavMN/Agri-Compass_Dashboard"
             target="_blank"
             rel="noopener noreferrer"
             onClick={playClick}

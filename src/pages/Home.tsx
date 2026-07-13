@@ -10,6 +10,7 @@ import { GoldDivider } from "../components/ui/GoldDivider";
 import { CustomCursor } from "../components/ui/CustomCursor";
 import { AmbientAudio } from "../components/ui/AmbientAudio";
 import { GlobalCanvas } from "../components/3d/GlobalCanvas";
+import { GlassPanel } from "../components/primitives/GlassPanel";
 
 // Lazy loaded components for performance
 const ProblemSection = lazy(() => import("../components/sections/ProblemSection").then(m => ({ default: m.ProblemSection })));
@@ -27,9 +28,21 @@ const FinalExperienceSection = lazy(() => import("../components/sections/FinalEx
 
 import { useReducedMotion } from "../hooks/useReducedMotion";
 
-const SectionLoader = () => (
-  <div className="h-32 flex items-center justify-center">
-    <div className="w-6 h-6 border border-[#E5D08F]/30 rounded-full animate-spin border-t-[#E5D08F]" />
+const CinematicSkeleton = () => (
+  <div className="min-h-[40vh] w-full flex items-center justify-center p-6">
+    <GlassPanel 
+      as={motion.div}
+      className="w-full max-w-5xl h-[40vh] flex flex-col items-center justify-center border-none shadow-none bg-[#E5D08F]/5"
+      animate={{ opacity: [0.1, 0.4, 0.1] }}
+      transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+      interaction="none"
+    >
+      <div className="flex gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-knowledge-gold)] animate-bounce" style={{ animationDelay: "0ms" }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-knowledge-gold)] animate-bounce" style={{ animationDelay: "150ms" }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-knowledge-gold)] animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
+    </GlassPanel>
   </div>
 );
 
@@ -72,47 +85,44 @@ export const Home = () => {
             >
               <Navbar />
               <main className="relative z-10 mix-blend-screen bg-transparent">
-                {/* Spacer to push content down for scroll sequence (Earth -> Tree) */}
-                <div style={{ height: "40vh" }} />
-
                 <HeroSection />
                 <DashboardShowcaseSection />
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><ProblemSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><ProblemSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><KnowledgeGraphSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><KnowledgeGraphSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><UserJourneySection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><UserJourneySection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><SmartFarmSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><SmartFarmSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><VoiceSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><VoiceSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><FeaturesSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><FeaturesSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><EngineeringLabSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><EngineeringLabSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><TechSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><TechSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><StatsSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><StatsSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><VisionSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><VisionSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><TeamSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><TeamSection /></Suspense>
                 <GoldDivider />
 
-                <Suspense fallback={<SectionLoader />}><FinalExperienceSection /></Suspense>
+                <Suspense fallback={<CinematicSkeleton />}><FinalExperienceSection /></Suspense>
               </main>
               <Footer />
             </motion.div>

@@ -1,7 +1,9 @@
 import { useRef } from"react";
 import { motion, useInView } from"framer-motion";
 import { LAYOUT_SPRING } from"../../constants/springs";
-import { FramerCounter } from"../ui/FramerCounter";
+import { FramerCounter } from "../ui/FramerCounter";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Button } from "../primitives/Button";
 
 const highlights = [
   { icon:"🤖", title:"AI Powered", desc:"Gemini AI for contextual farm advice" },
@@ -50,11 +52,11 @@ export const FinalExperienceSection = () => {
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ ...LAYOUT_SPRING, delay: i * 0.07 }}
                 className="pointer-events-auto">
-                <div className="premium-card p-6 h-full flex flex-col justify-center transition-transform duration-500 hover:scale-[1.02]">
+                <GlassPanel className="p-6 h-full flex flex-col justify-center" interaction="hover">
                   <div className="text-3xl mb-4">{item.icon}</div>
                   <p className="text-[#F5F0E8]/80 text-base font-semibold mb-2">{item.title}</p>
                   <p className="text-[#F5F0E8]/40 text-sm leading-relaxed">{item.desc}</p>
-                </div>
+                </GlassPanel>
               </motion.div>
             ))}
           </div>
@@ -99,7 +101,7 @@ export const FinalExperienceSection = () => {
                 },
                 {
                   label:"GitHub Repository",
-                  href:"https://github.com/UtsavMN/Agri-compass_v3",
+                  href:"https://github.com/UtsavMN/Agri-Compass_Dashboard",
                   primary: false,
                 },
                 {
@@ -108,26 +110,19 @@ export const FinalExperienceSection = () => {
                   primary: false,
                 },
               ].map((btn) => (
-                <motion.a
+                <a
                   key={btn.label}
                   href={btn.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: btn.primary
-                      ?"0 0 36px rgba(201,168,76,0.4)"
-                      :"none",
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`px-7 py-3.5 rounded-xl text-sm font-semibold transition-all ${
-                    btn.primary
-                      ?"bg-[#E5D08F] text-[#0A0900]"
-                      :"border border-[#2A2720] text-[#F5F0E8]/50 hover:hover:text-[#F5F0E8]"
-                  }`}
                 >
-                  {btn.label} →
-                </motion.a>
+                  <Button
+                    variant={btn.primary ? "primary" : "ghost"}
+                    className="px-7 py-3.5"
+                  >
+                    {btn.label} →
+                  </Button>
+                </a>
               ))}
             </div>
           </motion.div>
@@ -175,24 +170,16 @@ export const FinalExperienceSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ ...LAYOUT_SPRING, delay: 0.5 }}>
-            <motion.a
-              href="https://agri-compass-v3.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.05, boxShadow:"0 0 50px rgba(201,168,76,0.4)" }}
-              whileTap={{ scale: 0.97 }}
-              className="px-12 py-5 bg-[#E5D08F] text-[#0A0900] font-semibold text-lg rounded-xl transition-all hover:bg-[#F6E6B8] hover:shadow-[0_0_20px_rgba(229,208,143,0.4)]">
-              Open AgriCompass →
-            </motion.a>
-            <motion.a
-              href="https://github.com/UtsavMN/Agri-compass_v3"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ borderColor:"rgba(201,168,76,0.45)" }}
-              className="px-12 py-5 border border-[#2A2720] text-[#F5F0E8]/50 text-lg
-                         rounded-xl hover:text-[#F5F0E8] transition-all">
-              View on GitHub
-            </motion.a>
+            <a href="https://agri-compass-v3.vercel.app" target="_blank" rel="noopener noreferrer">
+              <Button variant="primary" className="px-12 py-5 text-lg">
+                Open AgriCompass →
+              </Button>
+            </a>
+            <a href="https://github.com/UtsavMN/Agri-Compass_Dashboard" target="_blank" rel="noopener noreferrer">
+              <Button variant="ghost" className="px-12 py-5 border border-[#2A2720] text-lg">
+                View on GitHub
+              </Button>
+            </a>
           </motion.div>
         </div>
       </div>

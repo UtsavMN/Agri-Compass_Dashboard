@@ -4,7 +4,7 @@ import { TypographyTokens } from '../../design-system/tokens';
 type Variant = keyof typeof TypographyTokens.fontSize;
 type Color = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'gold' | 'green' | 'amber';
 
-interface TypographyProps {
+interface TypographyProps extends Omit<React.HTMLAttributes<HTMLElement>, 'color'> {
   variant: Variant;
   color?: Color;
   as?: React.ElementType;
@@ -17,13 +17,15 @@ export const Typography: React.FC<TypographyProps> = ({
   color = 'primary', 
   as, 
   className = '', 
-  children 
+  children,
+  style: customStyle,
+  ...props
 }) => {
   const isDisplay = variant.startsWith('display');
   const isHeading = variant.startsWith('heading');
   const isMono = variant === 'micro';
   
-  const Component = as || (isDisplay ? 'h1' : isHeading ? 'h2' : 'p');
+  const Component = (as || (isDisplay ? 'h1' : isHeading ? 'h2' : 'p')) as any;
   
   const fontFamily = isDisplay || isHeading 
     ? TypographyTokens.fontFamily.display 
@@ -40,7 +42,7 @@ export const Typography: React.FC<TypographyProps> = ({
     color === 'muted' ? 'var(--color-text-muted)' :
     'var(--color-text-primary)';
 
-  const style: React.CSSProperties = {
+  const baseStyle: React.CSSProperties = {
     fontFamily,
     fontSize: TypographyTokens.fontSize[variant],
     lineHeight: isDisplay ? TypographyTokens.lineHeight.tight : isHeading ? TypographyTokens.lineHeight.snug : TypographyTokens.lineHeight.relaxed,
@@ -50,11 +52,11 @@ export const Typography: React.FC<TypographyProps> = ({
   };
 
   if (isMono) {
-    style.letterSpacing = TypographyTokens.letterSpacing.wider;
+    baseStyle.letterSpacing = TypographyTokens.letterSpacing.wider;
   }
 
   return (
-    <Component style={style} className={className}>
+    <Component style={{ ...baseStyle, ...customStyle }} className={className} {...props}>
       {children}
     </Component>
   );

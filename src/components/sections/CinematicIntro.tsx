@@ -1,7 +1,9 @@
-import { useState, useEffect } from"react";
-import { motion, AnimatePresence } from"framer-motion";
-import { LAYOUT_SPRING } from"../../constants/springs";
-import { useReducedMotion } from"../../hooks/useReducedMotion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { GlassPanel } from "../primitives/GlassPanel";
+import { Button } from "../primitives/Button";
+import { LAYOUT_SPRING } from "../../constants/springs";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 // Compass loading animation
 const CompassLoader = ({ progress }: { progress: number }) => (
@@ -9,17 +11,35 @@ const CompassLoader = ({ progress }: { progress: number }) => (
     className="fixed inset-0 z-50 bg-[#080a05] flex flex-col items-center justify-center"
     exit={{ opacity: 0, transition: { duration: 1.2 } }}
   >
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, duration: 2.5, ease:"linear" }}
-      className="text-7xl mb-8 select-none"
-    >
-      🧭
-    </motion.div>
+    <svg width="64" height="64" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-8 drop-shadow-[0_0_15px_rgba(229,208,143,0.2)]">
+      {/* Compass Body */}
+      <circle cx="24" cy="24" r="22" stroke="#E5D08F" strokeWidth="2" fill="transparent" />
+      <circle cx="24" cy="24" r="18" stroke="#E5D08F" strokeWidth="0.5" strokeDasharray="2 4" fill="transparent" opacity="0.5" />
+      {/* Compass Tick Marks */}
+      <path d="M24 2 V 6 M24 42 V 46 M2 24 H 6 M42 24 H 46" stroke="#E5D08F" strokeWidth="2" strokeLinecap="round" />
+      
+      {/* Rotating Needle */}
+      <motion.g 
+        animate={{ rotate: [0, 45, -20, 180, 160, 320, 360] }} 
+        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} 
+        style={{ transformOrigin: "24px 24px" }}
+      >
+        {/* Shadow */}
+        <path d="M24 8 L 29 24 L 24 40 L 19 24 Z" fill="#000" opacity="0.3" transform="translate(1, 2)" />
+        {/* South Pointer */}
+        <path d="M24 8 L 29 24 L 24 40 L 19 24 Z" fill="#E5D08F" opacity="0.3" />
+        {/* North Pointer */}
+        <path d="M24 8 L 29 24 L 19 24 Z" fill="#EF4444" /> 
+      </motion.g>
+
+      {/* Center Pin */}
+      <circle cx="24" cy="24" r="3" fill="#E5D08F" />
+      <circle cx="24" cy="24" r="1" fill="#080a05" />
+    </svg>
     <div className="w-52 h-0.5 bg-[#2A2720] rounded-full overflow-hidden mb-6">
-      <motion.div
+      <motion.div 
         className="h-full bg-[#E5D08F] rounded-full"
-        initial={{ width:"0%" }}
+        initial={{ width: "0%" }}
         animate={{ width: `${Math.min(progress, 100)}%` }}
         transition={LAYOUT_SPRING}
       />
@@ -34,11 +54,12 @@ const CompassLoader = ({ progress }: { progress: number }) => (
 const DataCard = ({
   label, value, color, delay,
 }: { label: string; value: string; color: string; delay: number }) => (
-  <motion.div
+  <GlassPanel
+    as={motion.div}
     initial={{ opacity: 0, scale: 0.85, y: 20 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
     transition={{ ...LAYOUT_SPRING, delay }}
-    className="rounded-xl px-5 py-3.5 premium-card"
+    className="rounded-xl px-5 py-3.5"
     style={{ boxShadow: `0 0 24px ${color}25` }}
   >
     <p className="text-[9px] font-mono text-[#F5F0E8]/30 uppercase tracking-[0.3em] mb-1">
@@ -47,15 +68,15 @@ const DataCard = ({
     <p className="font-semibold text-xl leading-none" style={{ color }}>
       {value}
     </p>
-  </motion.div>
+  </GlassPanel>
 );
 
 const phases = [
-  { text:"India · 170 million hectares of farmland", sub:"The world's second-largest agricultural economy" },
-  { text:"Karnataka · 12 million farmers", sub:"Decisions made daily without data" },
-  { text:"Every acre deserves intelligent decisions", sub:"Traditional knowledge is disappearing" },
-  { text:"AI scanning soil, weather, markets", sub:"Real-time intelligence for every farm" },
-  { text:"AgriCompass — empowering farmers through data", sub:"Built by engineers who believe farming can be smarter" },
+  { text: "India · 170 million hectares of farmland", sub: "The world's second-largest agricultural economy" },
+  { text: "Karnataka · 12 million farmers", sub: "Decisions made daily without data" },
+  { text: "Every acre deserves intelligent decisions", sub: "Traditional knowledge is disappearing" },
+  { text: "AI scanning soil, weather, markets", sub: "Real-time intelligence for every farm" },
+  { text: "AgriCompass — empowering farmers through data", sub: "Built by engineers who believe farming can be smarter" },
 ];
 
 export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
@@ -142,15 +163,13 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
       {/* Skip button */}
       <AnimatePresence>
         {showSkip && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <Button
+            variant="ghost"
+            className="fixed top-6 right-6 z-50 text-xs font-mono pointer-events-auto"
             onClick={onComplete}
-            className="fixed top-6 right-6 z-50 text-xs font-mono pointer-events-auto btn-ghost"
           >
-            Skip intro →
-          </motion.button>
+            [ SKIP INTRO ]
+          </Button>
         )}
       </AnimatePresence>
     </>

@@ -1,7 +1,8 @@
 import { useState, useRef } from"react";
 import { motion, useInView, AnimatePresence } from"framer-motion";
 import { LAYOUT_SPRING } from"../../constants/springs";
-import { useAudio } from"../../hooks/useAudio";
+import { useAudio } from "../../hooks/useAudio";
+import { GlassPanel } from "../primitives/GlassPanel";
 
 const quickCommands = [
   { kn:"ಬೆಳಗಳ ಪಟ್ಟಿ ತೋರಿಸು",   en:"Crops Page",        icon:"🌾" },
@@ -66,7 +67,7 @@ export const VoiceSection = () => {
           animate={inView ? { opacity: 1, x: 0 } : {}}
           transition={LAYOUT_SPRING}
         >
-          <div className="premium-card overflow-hidden p-0 w-full">
+          <GlassPanel className="overflow-hidden p-0 w-full" interaction="hover">
             {/* Modal header */}
             <div className="bg-[#191610] border-b border-[#2A2720] px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -183,7 +184,7 @@ export const VoiceSection = () => {
                 </motion.div>
               ))}
             </div>
-          </div>
+          </GlassPanel>
         </motion.div>
 
         {/* Explanation side */}

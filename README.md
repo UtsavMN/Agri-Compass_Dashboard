@@ -9,7 +9,7 @@ AgriCompass Showcase is a cinematic, Apple-style interactive product tour design
 ## 🌟 Live Demo
 - **Showcase Website:** [agri-compass-showcase.vercel.app](https://agri-compass-showcase.vercel.app)
 - **Live Application:** [agri-compass-v3.vercel.app](https://agri-compass-v3.vercel.app)
-- **Source Code (Full App):** [GitHub Repository](https://github.com/UtsavMN/Agri-compass_v3)
+- **Source Code (Full App):** [GitHub Repository](https://github.com/UtsavMN/Agri-Compass_Dashboard)
 
 ## 🏗 Architecture Overview
 

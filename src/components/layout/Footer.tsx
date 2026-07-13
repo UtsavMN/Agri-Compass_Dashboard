@@ -30,7 +30,7 @@ export const Footer = () => (
         <div className="flex items-center gap-5">
           {[
             { label: "Live App", href: "https://agri-compass-v3.vercel.app" },
-            { label: "GitHub", href: "https://github.com/UtsavMN/Agri-compass_v3" },
+            { label: "GitHub", href: "https://github.com/UtsavMN/Agri-Compass_Dashboard" },
           ].map((link) => (
             <motion.a
               key={link.label}

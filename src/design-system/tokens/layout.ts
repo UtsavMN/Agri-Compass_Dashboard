@@ -11,6 +11,7 @@ export const LayoutTokens = {
     sm: 'max-w-3xl',
     md: 'max-w-5xl',
     lg: 'max-w-7xl',
+    xl: 'max-w-[96rem]',
     full: 'max-w-none'
   },
   zIndex: {

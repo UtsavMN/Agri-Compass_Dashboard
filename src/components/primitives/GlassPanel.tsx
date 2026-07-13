@@ -9,6 +9,7 @@ interface GlassPanelProps extends HTMLMotionProps<"div"> {
   variant?: Variant;
   interaction?: Interaction;
   className?: string;
+  as?: any;
   children: React.ReactNode;
 }
 
@@ -16,6 +17,7 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
   variant = 'card',
   interaction = 'none',
   className = '',
+  as,
   children,
   ...props
 }) => {
@@ -25,8 +27,10 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
   const radius = variant === 'overlay' ? '0' : GlassTokens.radius.lg;
   const shadow = variant === 'overlay' ? 'none' : GlassTokens.shadow.ambient;
 
+  const Component = as || motion.div;
+
   return (
-    <motion.div
+    <Component
       className={`relative overflow-hidden ${className}`}
       style={{
         background: opacity,
@@ -57,6 +61,6 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
       <div className="relative z-10">
         {children}
       </div>
-    </motion.div>
+    </Component>
   );
 };

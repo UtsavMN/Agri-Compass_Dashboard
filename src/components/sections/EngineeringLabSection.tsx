@@ -183,7 +183,7 @@ const SystemArchitecture = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
               transition={LAYOUT_SPRING}
-              className="premium-card p-8"
+              className="p-8"
               role="region"
               aria-label={`${nodeDetails[activeNode]?.title} details`}
             >

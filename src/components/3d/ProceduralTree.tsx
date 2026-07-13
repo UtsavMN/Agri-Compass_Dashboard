@@ -52,6 +52,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   const leafMatrices1: THREE.Matrix4[] = [];
   const leafMatrices2: THREE.Matrix4[] = [];
   const blossomMatrices: THREE.Matrix4[] = [];
+  const fruitMatrices: THREE.Matrix4[] = [];
   const flowPaths: PathNode[][] = [];
 
   const GROUND_Y = -5.0;
@@ -145,6 +146,16 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
         
         if (Math.random() > 0.5) leafMatrices1.push(leafMat);
         else leafMatrices2.push(leafMat);
+        
+        // Add Harvest/Fruit Nodes (representing completed application projects)
+        if (depth === 1 && i === 0 && Math.random() > 0.3) {
+          const fruitMat = new THREE.Matrix4();
+          // Hang down slightly from the leaf cluster
+          const fruitPos = leafPos.clone().add(new THREE.Vector3(0, -0.3, 0));
+          const fScale = 0.8 + Math.random() * 0.4;
+          fruitMat.compose(fruitPos, new THREE.Quaternion(), new THREE.Vector3(fScale, fScale, fScale));
+          fruitMatrices.push(fruitMat);
+        }
       }
       flowPaths.push([...currentPath]);
     }
@@ -260,7 +271,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   const mergedTwigs = twigGeometries.length > 0 ? BufferGeometryUtils.mergeGeometries(twigGeometries) : new THREE.BufferGeometry();
   const mergedRoots = rootGeometries.length > 0 ? BufferGeometryUtils.mergeGeometries(rootGeometries) : new THREE.BufferGeometry();
 
-  return { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths };
+  return { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths };
 };
 
 // ─── SHADER INJECTIONS ────────────────────────────────────────────────────────
@@ -538,12 +549,13 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   const leafMeshRef1 = useRef<THREE.InstancedMesh>(null);
   const leafMeshRef2 = useRef<THREE.InstancedMesh>(null);
   const blossomMeshRef = useRef<THREE.InstancedMesh>(null);
+  const fruitMeshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   
   const customUniforms = useRef({ uTime: { value: 0 }, uSeason: { value: 0 } });
 
   // Restore 7 iterations for a full canopy, but separate the twigs to dissolve them in winter
-  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, flowPaths } = useMemo(() => generateSeamlessTree(7, 5.0, 1.2), []);
+  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(7, 5.0, 1.2), []);
 
 
   // Geometry
@@ -601,6 +613,13 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
     }
     geo.computeVertexNormals();
     geo.translate(0, 0.5, 0);
+    return geo;
+  }, []);
+
+  const fruitGeo = useMemo(() => {
+    // Elegant low-poly icosahedron fruit for "Harvest" symbols
+    const geo = new THREE.IcosahedronGeometry(0.18, 1);
+    geo.computeVertexNormals();
     return geo;
   }, []);
 
@@ -743,6 +762,40 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
     return mat;
   }, [settings.windComplexity]);
 
+  const fruitMat = useMemo(() => {
+    // Golden glowing fruit to match "Knowledge Gold" semantics
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0xFFD700, 
+      emissive: 0xFF8C00,
+      emissiveIntensity: 0.6,
+      roughness: 0.3,
+      metalness: 0.6
+    });
+    
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uSeason = customUniforms.current.uSeason;
+      shader.vertexShader = `
+        uniform float uSeason;
+        ${shader.vertexShader}
+      `.replace(
+        `#include <begin_vertex>`,
+        `
+        #include <begin_vertex>
+        // Fruits only appear in late summer / autumn
+        float wrapSeason = min(uSeason, abs(uSeason - 1.0));
+        float scale = 0.0;
+        if (wrapSeason > 0.3 && wrapSeason < 0.6) {
+           scale = smoothstep(0.3, 0.45, wrapSeason);
+        } else if (wrapSeason >= 0.6) {
+           scale = 1.0 - smoothstep(0.6, 0.7, wrapSeason);
+        }
+        transformed *= scale;
+        `
+      );
+    };
+    return mat;
+  }, []);
+
   useEffect(() => {
     if (leafMeshRef1.current) {
       leafMatrices1.forEach((mat, i) => leafMeshRef1.current!.setMatrixAt(i, mat));
@@ -756,7 +809,11 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       blossomMatrices.forEach((mat, i) => blossomMeshRef.current!.setMatrixAt(i, mat));
       blossomMeshRef.current.instanceMatrix.needsUpdate = true;
     }
-  }, [leafMatrices1, leafMatrices2, blossomMatrices, rockMatrices]);
+    if (fruitMeshRef.current) {
+      fruitMatrices.forEach((mat, i) => fruitMeshRef.current!.setMatrixAt(i, mat));
+      fruitMeshRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, rockMatrices]);
 
   // Memory Cleanup
   useEffect(() => {
@@ -771,8 +828,10 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       twigMat.dispose();
       blossomMat.dispose();
       leafMat.dispose();
+      fruitGeo.dispose();
+      fruitMat.dispose();
     };
-  }, [leafGeo1, leafGeo2, blossomGeo, mergedBranches, mergedTwigs, mergedRoots, mainBarkMat, twigMat, blossomMat, leafMat]);
+  }, [leafGeo1, leafGeo2, blossomGeo, fruitGeo, mergedBranches, mergedTwigs, mergedRoots, mainBarkMat, twigMat, blossomMat, leafMat, fruitMat]);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
@@ -802,6 +861,9 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       
       {/* Blossoms */}
       <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} count={Math.floor(blossomMatrices.length * settings.leafDensity)} receiveShadow />
+
+      {/* Harvest/Fruit Nodes (Application Projects) */}
+      <instancedMesh ref={fruitMeshRef} args={[fruitGeo, fruitMat, fruitMatrices.length]} count={fruitMatrices.length} castShadow />
 
       {/* Knowledge Flow Particles - Glowing Surface Veins */}
       <KnowledgeFlowSystem paths={flowPaths} maxCount={settings.particleCount} />

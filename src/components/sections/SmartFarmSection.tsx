@@ -702,9 +702,11 @@ export const SmartFarmSection = () => {
                 </Typography>
                 <Typography variant="caption" color="secondary">{farmLocations[active].keyFact}</Typography>
               </GlassPanel>
-              <Button as="a" href="https://agri-compass-v3.vercel.app" target="_blank" rel="noopener noreferrer" variant="outline">
-                Try live →
-              </Button>
+              <a href="https://agri-compass-v3.vercel.app" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost">
+                  Try live →
+                </Button>
+              </a>
             </div>
 
             <GlassPanel className="p-6 text-left">

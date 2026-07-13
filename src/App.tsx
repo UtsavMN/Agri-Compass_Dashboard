@@ -15,25 +15,6 @@ const NotFound = () => (
 );
 
 export default function App() {
-  // Performant delegated event listener for mouse glow effect
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const card = target.closest('.premium-card') as HTMLElement;
-      if (!card) return;
-      
-      const rect = card.getBoundingClientRect();
-      card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-      card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-    };
-
-    // passive: true improves scrolling performance
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
-
   return (
     <>
       <GlobalGrain />

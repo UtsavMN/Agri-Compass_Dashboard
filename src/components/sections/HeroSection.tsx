@@ -1,35 +1,18 @@
 import { motion } from "framer-motion";
-import { LAYOUT_SPRING, UI_SPRING } from "../../constants/springs";
+import { MotionTokens } from "../../design-system/tokens/motion";
 import { Typography } from "../primitives/Typography";
 import { Button } from "../primitives/Button";
 
 export const HeroSection = () => (
-  <section className="relative h-screen w-full flex flex-col justify-center overflow-hidden bg-transparent pointer-events-none">
-    {/* Enhanced Cinematic Vignette & Radial Mask for UI readability */}
-    <div className="absolute inset-0 z-[1] bg-gradient-to-b from-[var(--color-earth-black)]/80 via-transparent to-[var(--color-earth-black)]/40 pointer-events-none" />
-    <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_40%,var(--color-earth-black)_100%)] opacity-60 pointer-events-none" />
-
+  <section className="hero-section relative h-screen w-full flex flex-col justify-center overflow-hidden bg-transparent pointer-events-none">
     {/* Content — STRICTLY CENTER ALIGNED */}
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 pointer-events-none">
-      <div className="max-w-4xl flex flex-col items-center text-center pointer-events-auto mt-12">
-        {/* Label */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...LAYOUT_SPRING, delay: 0.4 }}
-          className="mb-8"
-        >
-          <Button variant="chip" as="div" className="pointer-events-none gap-3">
-            <div className="w-2 h-2 rounded-full bg-[var(--color-knowledge-gold)] animate-pulse" />
-            <span>AgriCompass · AI-Powered Agriculture</span>
-          </Button>
-        </motion.div>
-
+      <div className="max-w-4xl flex flex-col items-center text-center pointer-events-auto">
         {/* Headline - Drop shadow for readability against bright volumetric rays */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ ...LAYOUT_SPRING, delay: 0.7 }}
+          transition={{ ...MotionTokens.KnowledgeReveal, delay: 0.7 }}
           className="mb-6 drop-shadow-2xl"
           style={{ textShadow: "0 10px 40px rgba(0,0,0,0.8)" }}
         >
@@ -45,7 +28,7 @@ export const HeroSection = () => (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ ...LAYOUT_SPRING, delay: 1.5 }}
+          transition={{ ...MotionTokens.KnowledgeReveal, delay: 1.5 }}
           className="max-w-2xl mx-auto text-center drop-shadow-lg mb-6"
           style={{ textShadow: "0 4px 20px rgba(0,0,0,0.9)" }}
         >
@@ -59,7 +42,7 @@ export const HeroSection = () => (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ ...UI_SPRING, delay: 2 }}
+          transition={{ ...MotionTokens.RecruiterFocus, delay: 2 }}
           className="flex flex-row justify-center gap-6 items-center mt-6"
         >
           <a href="#problem">
