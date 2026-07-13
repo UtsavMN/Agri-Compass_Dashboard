@@ -562,21 +562,27 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   // Geometry
   // 3D Leaf Geometry Generator using ExtrudeGeometry for perfect smoothness
   const create3DLeaf = (width: number, height: number) => {
-    // Optimized 3D Leaf using PlaneGeometry instead of ExtrudeGeometry for massive performance boost
-    const geo = new THREE.PlaneGeometry(width, height, 2, 2);
+    // Optimized 3D Leaf using ShapeGeometry (actual leaf shape, but flat and low-poly)
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0); // Stem
+    shape.bezierCurveTo(width * 0.5, height * 0.2, width * 0.5, height * 0.8, 0, height);
+    shape.bezierCurveTo(-width * 0.5, height * 0.8, -width * 0.5, height * 0.2, 0, 0);
+
+    const geo = new THREE.ShapeGeometry(shape, 3); // Low curveSegments for performance
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       let x = pos.getX(i);
       let y = pos.getY(i);
       let z = pos.getZ(i);
       // Cup the leaf along the X axis
-      z += Math.abs(x) * 0.2;
+      z += Math.abs(x) * 0.3;
       // Bend the leaf along the Y axis (droop)
-      z -= Math.sin((y / height + 0.5) * Math.PI) * 0.2;
+      z -= Math.sin((y / height) * Math.PI) * 0.25;
       pos.setXYZ(i, x, y, z);
     }
     geo.computeVertexNormals();
-    geo.translate(0, height * 0.5, 0); // Move base to origin
+    geo.center();
+    geo.translate(0, height * 0.5, 0); // Move base to origin (pivot point)
     return geo;
   };
 
