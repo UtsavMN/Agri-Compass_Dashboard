@@ -103,7 +103,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
 
     if (curvePoints.length > 1) {
       const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const tubeGeo = new TaperedTubeGeometry(curve, segments * 8, curveRadii, 16); // High poly for perfectly round, smooth branches
+      const tubeGeo = new TaperedTubeGeometry(curve, segments * 3, curveRadii, 8); // Reduced from 16 to 8 segments
       
       const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
       targetArray.push(tubeGeo);
@@ -260,7 +260,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     
     if (rootPoints.length > 1) {
       const rootCurve = new THREE.CatmullRomCurve3(rootPoints);
-      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 4, rootRadii, 12);
+      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 3, rootRadii, 8);
       rootGeometries.push(rootGeo);
     }
   }
@@ -544,6 +544,7 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: PathNode[][], maxCoun
 
 export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [number, number, number] }) => {
   const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, { damping: 30, stiffness: 70, mass: 1.5, restDelta: 0.001 });
   const { settings } = useQualityStore();
   const reducedMotion = useReducedMotion();
   const leafMeshRef1 = useRef<THREE.InstancedMesh>(null);
@@ -554,48 +555,27 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   
   const customUniforms = useRef({ uTime: { value: 0 }, uSeason: { value: 0 } });
 
-  // Restore 7 iterations for a full canopy, but separate the twigs to dissolve them in winter
-  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(7, 5.0, 1.2), []);
+  // Restore 6 iterations for a full canopy (optimized from 7)
+  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(6, 5.0, 1.2), []);
 
 
   // Geometry
   // 3D Leaf Geometry Generator using ExtrudeGeometry for perfect smoothness
   const create3DLeaf = (width: number, height: number) => {
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0); // Stem
-    // Right half
-    shape.bezierCurveTo(width * 0.5, height * 0.2, width * 0.5, height * 0.8, 0, height);
-    // Left half
-    shape.bezierCurveTo(-width * 0.5, height * 0.8, -width * 0.5, height * 0.2, 0, 0);
-
-    const extrudeSettings = {
-      depth: 0.005, // Paper thin
-      bevelEnabled: true,
-      bevelSegments: 1,
-      steps: 1,
-      bevelSize: 0.005,
-      bevelThickness: 0.005
-    };
-
-    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    
-    // Apply 3D curve (cupping and droop)
+    // Optimized 3D Leaf using PlaneGeometry instead of ExtrudeGeometry for massive performance boost
+    const geo = new THREE.PlaneGeometry(width, height, 2, 2);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       let x = pos.getX(i);
       let y = pos.getY(i);
       let z = pos.getZ(i);
-      
       // Cup the leaf along the X axis
       z += Math.abs(x) * 0.2;
       // Bend the leaf along the Y axis (droop)
-      z -= Math.sin((y / height) * Math.PI) * 0.2;
-      
+      z -= Math.sin((y / height + 0.5) * Math.PI) * 0.2;
       pos.setXYZ(i, x, y, z);
     }
-    
     geo.computeVertexNormals();
-    geo.center(); // Center geometry
     geo.translate(0, height * 0.5, 0); // Move base to origin
     return geo;
   };
@@ -714,17 +694,18 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         vUvLeaf = uv;
         vec3 pos = position;
         vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-        float randDelay = fract(sin(worldPos.x * 12.33 + worldPos.z * 4.31) * 43.11) * 0.1;
-        float sTime = fract(uSeason - randDelay);
+        float randDelay = fract(sin(worldPos.x * 12.33 + worldPos.z * 4.31) * 43.11) * 0.2;
+        float localSeason = max(0.0, uSeason - randDelay);
         float scale = 1.0;
-        if (sTime < 0.1) {
-           scale = smoothstep(0.0, 0.1, sTime);
-        } else if (sTime > 0.6 && sTime < 0.75) {
-           scale = 1.0 - smoothstep(0.6, 0.75, sTime);
-        } else if (sTime >= 0.75) {
+        
+        // Leaves are full size initially, fall off near the end
+        if (localSeason > 0.6 && localSeason < 0.8) {
+           scale = 1.0 - smoothstep(0.6, 0.8, localSeason);
+        } else if (localSeason >= 0.8) {
            scale = 0.0;
         }
-        pos *= max(scale, 0.0);
+        
+        pos *= scale;
         
         ${windCode}
         `
@@ -836,7 +817,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     customUniforms.current.uTime.value = reducedMotion ? 0 : t;
-    customUniforms.current.uSeason.value = scrollYProgress.get();
+    customUniforms.current.uSeason.value = smoothProgress.get();
     
     if (groupRef.current && !reducedMotion) {
       groupRef.current.rotation.z = Math.sin(t * 0.2) * 0.008;
