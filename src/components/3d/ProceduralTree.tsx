@@ -631,18 +631,17 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       shader.uniforms.uTime = customUniforms.current.uTime;
       shader.uniforms.uSeason = customUniforms.current.uSeason;
       
-      const windCode = settings.windComplexity === "none" ? `vec3 transformed = pos;` : 
+      const windCode = settings.windComplexity === "none" ? `` : 
         settings.windComplexity === "simple" ? `
           float flutter = sin(uTime * 3.0 + worldPos.x * 5.0) * 0.05 * scale;
           float s = sin(flutter); float c = cos(flutter);
           mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
-          vec3 transformed = rotX * pos;
+          transformed = rotX * transformed;
         ` : `
           float flutter = sin(uTime * 6.0 + worldPos.x * 12.0) * 0.1 * scale;
           float s = sin(flutter); float c = cos(flutter);
           mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
-          pos = rotX * pos;
-          vec3 transformed = pos;
+          transformed = rotX * transformed;
         `;
 
       shader.vertexShader = `
@@ -652,11 +651,11 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       `.replace(
         `#include <begin_vertex>`,
         `
-        vec3 pos = position;
+        #include <begin_vertex>
         vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float wrapSeason = min(uSeason, abs(uSeason - 1.0));
         float scale = smoothstep(0.2, 0.05, wrapSeason);
-        pos *= scale;
+        transformed *= scale;
         ${windCode}
         `
       );
@@ -673,32 +672,30 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       shader.uniforms.uTime = customUniforms.current.uTime;
       shader.uniforms.uSeason = customUniforms.current.uSeason;
       
-      const windCode = settings.windComplexity === "none" ? `vec3 transformed = pos;` :
+      const windCode = settings.windComplexity === "none" ? `` :
         settings.windComplexity === "simple" ? `
           float sway = sin(uTime * 0.8 + worldPos.z * 0.2) * 0.02 * scale;
-          pos.x += sway * pos.y;
-          vec3 transformed = pos;
+          transformed.x += sway * transformed.y;
         ` : `
           float flutter = sin(uTime * 2.5 + worldPos.x * 5.0 + worldPos.y * 3.0) * 0.025 * scale;
           float s = sin(flutter);
           float c = cos(flutter);
           mat3 rotX = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
-          pos = rotX * pos;
+          transformed = rotX * transformed;
           float sway = sin(uTime * 0.5 + worldPos.z * 0.2 + worldPos.x * 0.1) * 0.03 * scale;
-          pos.x += sway * pos.y;
-          vec3 transformed = pos;
+          transformed.x += sway * transformed.y;
         `;
 
       shader.vertexShader = `
         uniform float uTime;
         uniform float uSeason;
-        varying vec2 vUvLeaf;
+        varying vec3 vLocalPos;
         ${shader.vertexShader}
       `.replace(
         `#include <begin_vertex>`,
         `
-        vUvLeaf = uv;
-        vec3 pos = position;
+        #include <begin_vertex>
+        vLocalPos = position;
         vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float randDelay = fract(sin(worldPos.x * 12.33 + worldPos.z * 4.31) * 43.11) * 0.2;
         float localSeason = max(0.0, uSeason - randDelay);
@@ -711,7 +708,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
            scale = 0.0;
         }
         
-        pos *= scale;
+        transformed *= scale;
         
         ${windCode}
         `
@@ -719,7 +716,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       
       shader.fragmentShader = `
         uniform float uSeason;
-        varying vec2 vUvLeaf;
+        varying vec3 vLocalPos;
         ${shader.fragmentShader}
       `.replace(
         `#include <color_fragment>`,
@@ -738,8 +735,8 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
            seasonColor = autumnColor;
         }
         
-        // Procedural gradient: darker at base (vUvLeaf.y = 0), lighter at tip (vUvLeaf.y = 1)
-        float gradient = vUvLeaf.y;
+        // Procedural gradient using local position instead of UVs
+        float gradient = clamp(vLocalPos.y * 0.7, 0.0, 1.0);
         vec3 leafColor = mix(seasonColor * 0.4, seasonColor * 1.2, gradient);
         
         diffuseColor.rgb = leafColor;
