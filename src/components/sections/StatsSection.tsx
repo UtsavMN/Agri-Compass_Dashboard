@@ -29,7 +29,7 @@ export const StatsSection = () => {
             Scale & Impact
           </Typography>
           <Typography variant="display-2" className="mb-4">
-            Built for a <span className="text-[var(--color-knowledge-gold)] italic">state.</span>
+            Built for <span className="text-[var(--color-knowledge-gold)] italic">Karnataka.</span>
           </Typography>
         </motion.div>
 
