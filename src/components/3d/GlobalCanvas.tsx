@@ -50,8 +50,8 @@ const FogRig = ({ isIntro }: { isIntro: boolean }) => {
         fog.near = THREE.MathUtils.lerp(15, 0, cloudFactor);
         fog.far = THREE.MathUtils.lerp(60, 2, cloudFactor);
       } else {
-        // Normal farm fog (Cinematic Gold Hour Atmospheric Fog)
-        const baseColor = new THREE.Color("#1a1500"); // Richer atmospheric fog
+        // Normal farm fog (Cinematic Deep Forest Shadow)
+        const baseColor = new THREE.Color("#050806"); // Very dark, slight green/cyan tint for contrast
         fog.color.lerp(baseColor, 0.05);
         fog.near = 10;
         fog.far = 70;
@@ -84,21 +84,21 @@ const LightRig = ({ isIntro }: { isIntro: boolean }) => {
         // Farm phase -> mapped to scroll (season 0.0 to 1.0)
         const season = smoothProgress.get();
         
-        // Golden hour dominant lighting
-        const springColor = new THREE.Color(0xFFE5B4); // Peachy gold
-        const summerColor = new THREE.Color(0xFFD700); // Pure gold
-        const autumnColor = new THREE.Color(0xFF8C00); // Deep orange
-        const winterColor = new THREE.Color(0xD1D8E0); // Cool gray
+        // Crisp morning sunlight vs heavy yellow
+        const springColor = new THREE.Color(0xD0E5FF); // Soft crisp cyan/white morning light
+        const summerColor = new THREE.Color(0xFFF0D0); // Gentle warm sunlight
+        const autumnColor = new THREE.Color(0xFFB040); // Deep golden hour
+        const winterColor = new THREE.Color(0xA0B0C0); // Cool mist
         
         let targetColor = springColor;
-        let intensity = 2.5;
+        let intensity = 2.0; // Reduced blowout
         
         if (season < 0.33) {
           targetColor = springColor.clone().lerp(summerColor, season / 0.33);
-          intensity = THREE.MathUtils.lerp(2.5, 3.0, season / 0.33);
+          intensity = THREE.MathUtils.lerp(2.0, 2.5, season / 0.33);
         } else if (season < 0.66) {
           targetColor = summerColor.clone().lerp(autumnColor, (season - 0.33) / 0.33);
-          intensity = THREE.MathUtils.lerp(3.0, 2.0, (season - 0.33) / 0.33);
+          intensity = THREE.MathUtils.lerp(2.5, 2.0, (season - 0.33) / 0.33);
         } else {
           targetColor = autumnColor.clone().lerp(winterColor, (season - 0.66) / 0.34);
           intensity = THREE.MathUtils.lerp(2.0, 1.2, (season - 0.66) / 0.34);
@@ -107,11 +107,12 @@ const LightRig = ({ isIntro }: { isIntro: boolean }) => {
         sunLight.color.copy(targetColor);
         sunLight.intensity = intensity;
         
-        // Soft Bounce Lighting & Ambient
-        ambientLight.color.copy(targetColor);
-        ambientLight.intensity = intensity * 0.05;
+        // Soft Bounce Lighting & Ambient - Keep it dark for contrast
+        ambientLight.color.setHex(0x0a0c10); // Very dim blue/black ambient
+        ambientLight.intensity = 1.0;
         
         hemiLight.color.copy(targetColor);
+        hemiLight.groundColor.setHex(0x050608); // Pitch dark ground bounce
         hemiLight.intensity = intensity * 0.15;
 
         // Move sun lower for dramatic golden hour shadows
