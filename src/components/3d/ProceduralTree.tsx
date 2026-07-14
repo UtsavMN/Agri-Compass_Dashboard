@@ -68,20 +68,17 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   ) => {
     const segments = 8; // High segments for ultra-smooth curving
     
-    const curvePoints: THREE.Vector3[] = [];
-    const curveRadii: number[] = [];
+    const curvePoints: THREE.Vector3[] = [startPos.clone()];
+    const curveRadii: number[] = [startRad];
     
-    // Smooth Branch Joints: Inherit parent's trajectory to create a seamless Bezier fork
-    if (currentPath.length > 0) {
-       const parentPrev = currentPath[currentPath.length - 2] || currentPath[currentPath.length - 1];
-       if (parentPrev) {
-          curvePoints.push(parentPrev.pos.clone());
-          curveRadii.push(parentPrev.radius);
-       }
+    // Smooth Branch Joints: Place a sphere at the fork to perfectly round off the sharp angle
+    if (!isTrunk && depth > 0) {
+        const jointSphere = new THREE.SphereGeometry(startRad * 0.95, 24, 24);
+        const jointMat = new THREE.Matrix4().setPosition(startPos);
+        jointSphere.applyMatrix4(jointMat);
+        const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
+        targetArray.push(jointSphere);
     }
-    
-    curvePoints.push(startPos.clone());
-    curveRadii.push(startRad);
     
     let currentStart = startPos.clone();
     let currentDir = startDir.clone();
