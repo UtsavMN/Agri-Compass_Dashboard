@@ -7,7 +7,6 @@ import { CinematicIntro } from "../components/sections/CinematicIntro";
 import { HeroSection } from "../components/sections/HeroSection";
 import { DashboardShowcaseSection } from "../components/sections/DashboardShowcaseSection";
 import { GoldDivider } from "../components/ui/GoldDivider";
-import { CustomCursor } from "../components/ui/CustomCursor";
 import { AmbientAudio } from "../components/ui/AmbientAudio";
 import { GlobalCanvas } from "../components/3d/GlobalCanvas";
 import { GlassPanel } from "../components/primitives/GlassPanel";
