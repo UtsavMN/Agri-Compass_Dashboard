@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassPanel } from "../primitives/GlassPanel";
 import { Button } from "../primitives/Button";
@@ -109,6 +109,11 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
     return () => clearInterval(interval);
   }, []);
 
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
   // Phase timeline: 0→4s→8s→13s→18s→24s
   useEffect(() => {
     if (!loaded) return;
@@ -116,11 +121,11 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
     const timers = timings.map((t, i) =>
       setTimeout(() => {
         if (i < 5) setPhase(i);
-        else onComplete();
+        else onCompleteRef.current();
       }, t)
     );
     return () => timers.forEach(clearTimeout);
-  }, [loaded, onComplete]);
+  }, [loaded]);
 
   if (prefersReduced) return null;
 

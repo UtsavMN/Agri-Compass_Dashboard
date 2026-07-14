@@ -164,7 +164,7 @@ export const FallingLeaves = ({ count = 200, petalCount = 100 }: { count?: numbe
       );
     };
     return mat;
-  }, [leafTexture]);
+  }, []);
 
   // Petal Material (Simpler, no seasonal tinting, always pinkish)
   const petalMaterial = useMemo(() => {

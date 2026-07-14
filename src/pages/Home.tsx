@@ -63,7 +63,6 @@ export const Home = () => {
 
   return (
     <>
-      <CustomCursor />
       <AmbientAudio />
 
       {/* Global 3D Canvas always present unless reduced motion is preferred */}

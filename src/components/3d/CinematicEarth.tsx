@@ -6,6 +6,7 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
   const earthGroupRef = useRef<THREE.Group>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
   const pinRef = useRef<THREE.Mesh>(null);
+  const cachedMeshesRef = useRef<{ rings: THREE.Object3D[], core: THREE.Object3D | null } | null>(null);
   const customUniforms = useRef({ uTime: { value: 0 } });
 
   // Load textures
@@ -157,6 +158,15 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     };
   }, [earthMat, atmosMat]);
 
+  useEffect(() => {
+    if (pinRef.current) {
+      cachedMeshesRef.current = {
+        rings: pinRef.current.children.filter(c => c.name === 'ring'),
+        core: pinRef.current.children.find(c => c.name === 'core') || null
+      };
+    }
+  }, []);
+
   useFrame((state, delta) => {
     if (!earthGroupRef.current) return;
     const t = state.clock.getElapsedTime();
@@ -172,20 +182,18 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     }
     
     // Pin pulsing radar effect
-    if (pinRef.current) {
+    if (cachedMeshesRef.current) {
       // 0 to 1 loop every 2 seconds
       const pulse = (t % 2.0) / 2.0;
       
-      const rings = pinRef.current.children.filter(c => c.name === 'ring');
-      rings.forEach((ring, i) => {
+      cachedMeshesRef.current.rings.forEach((ring, i) => {
         const offsetPulse = ((pulse + i * 0.5) % 1.0);
         ring.scale.setScalar(1.0 + offsetPulse * 4.0);
         ((ring as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = (1.0 - offsetPulse) * 0.8;
       });
       
-      const core = pinRef.current.children.find(c => c.name === 'core');
-      if (core) {
-         core.scale.setScalar(1.0 + Math.sin(t * 8) * 0.2);
+      if (cachedMeshesRef.current.core) {
+         cachedMeshesRef.current.core.scale.setScalar(1.0 + Math.sin(t * 8) * 0.2);
       }
     }
   });
