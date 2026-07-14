@@ -242,7 +242,7 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           {/* Farm Level Group */}
           <group position={[0, -50, -100]}>
             <BackgroundLayers />
-            <ProceduralTree position={[0, -2.5, 0]} />
+            <ProceduralTree position={[0, -2.5, -4]} />
             {settings.volumetricFog && !reducedMotion ? <VolumetricShafts /> : <></>}
             <FallingLeaves count={reducedMotion ? 10 : Math.floor(75 * settings.leafDensity)} /> 
             <Butterflies count={settings.butterflyCount} />

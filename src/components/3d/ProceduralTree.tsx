@@ -556,7 +556,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   const customUniforms = useRef({ uTime: { value: 0 }, uSeason: { value: 0 } });
 
   // Massive initial radius and 6 iterations for a full volumetric canopy
-  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(6, 4.5, 4.0), []);
+  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(6, 7.0, 4.0), []);
 
 
   // Geometry
