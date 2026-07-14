@@ -606,7 +606,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
     shape.bezierCurveTo(width * 0.5, height * 0.2, width * 0.5, height * 0.8, 0, height);
     shape.bezierCurveTo(-width * 0.5, height * 0.8, -width * 0.5, height * 0.2, 0, 0);
 
-    const geo = new THREE.ShapeGeometry(shape, 3); // Low curveSegments for performance
+    const geo = new THREE.ShapeGeometry(shape, 12); // Increased from 3 to 12 for perfectly smooth leaf outlines
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       let x = pos.getX(i);
