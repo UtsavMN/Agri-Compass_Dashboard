@@ -24,20 +24,26 @@ const WINTER_COLOR = new THREE.Color(0xA0B0C0);
 const _targetColor = new THREE.Color();
 const FARM_POSITION = new THREE.Vector3(0, -47, -75);
 
-const cameraPath = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0, 1.5, 6),       // 0: Universe view
-  new THREE.Vector3(0.1, 1.0, 3),     // 1: Moving closer to Earth
-  new THREE.Vector3(0.6, 0.65, -2.4), // 2: Diving into Karnataka
-  new THREE.Vector3(0.3, -20, -40),   // 3: Falling through the sky
-  new THREE.Vector3(0, -47, -75)      // 4: Arriving at Farm (Tree + 25 Z)
+const dynamicCamCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()
+]);
+const dynamicLookCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()
 ]);
 
-const lookAtPath = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0, 0, 0),         // 0: Look at Earth center
-  new THREE.Vector3(0.6, 0.65, -2.4), // 1: Look at Karnataka
-  new THREE.Vector3(0, -25, -50),     // 2: Look down during fall
-  new THREE.Vector3(0, -50, -100)     // 3: Look at Tree center
-]);
+const sharedEuler = new THREE.Euler(0, 0, 0, 'XYZ');
+const getEarthSurfacePoint = (latDeg: number, lonDeg: number, radius: number, time: number, target: THREE.Vector3) => {
+  const lat = latDeg * (Math.PI / 180);
+  const lon = -lonDeg * (Math.PI / 180);
+  target.set(
+    radius * Math.cos(lat) * Math.cos(lon),
+    radius * Math.sin(lat),
+    radius * Math.cos(lat) * Math.sin(lon)
+  );
+  sharedEuler.set(0.1, time * 0.02, 0, 'XYZ');
+  target.applyEuler(sharedEuler);
+  return target;
+};
 
 const FogRig = ({ isIntro }: { isIntro: boolean }) => {
   const { scene } = useThree();
@@ -189,8 +195,23 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
         introTime.current += delta;
         const t = Math.min(introTime.current / 24.0, 1.0);
         const easeT = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
-        const camPos = cameraPath.getPointAt(easeT);
-        const lookPos = lookAtPath.getPointAt(easeT);
+        
+        // Update dynamic splines for perfect planetary tracking
+        dynamicCamCurve.points[0].set(0, 1.5, 6); // Universe
+        getEarthSurfacePoint(20.5, 78.9, 3.8, time, dynamicCamCurve.points[1]); // India Hover
+        getEarthSurfacePoint(15.31, 75.71, 2.8, time, dynamicCamCurve.points[2]); // Karnataka Close
+        dynamicCamCurve.points[3].set(0, -20, -40); // Falling
+        dynamicCamCurve.points[4].set(0, -47, -75); // Farm
+        
+        dynamicLookCurve.points[0].set(0, 0, 0);
+        getEarthSurfacePoint(20.5, 78.9, 2.5, time, dynamicLookCurve.points[1]);
+        getEarthSurfacePoint(15.31, 75.71, 2.5, time, dynamicLookCurve.points[2]);
+        dynamicLookCurve.points[3].set(0, -25, -50);
+        dynamicLookCurve.points[4].set(0, -50, -100);
+
+        const camPos = dynamicCamCurve.getPointAt(easeT);
+        const lookPos = dynamicLookCurve.getPointAt(easeT);
+        
         camera.position.set(camPos.x + mx * 0.5, camPos.y + my * 0.5, camPos.z);
         camera.lookAt(lookPos);
       }
