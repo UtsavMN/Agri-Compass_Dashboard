@@ -108,19 +108,19 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
       const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
       targetArray.push(tubeGeo);
       
-      // Cap at the very end of the main trunk
       if (depth === 0) {
         const capSphere = new THREE.SphereGeometry(currentRad * 0.95, 12, 12);
-        capSphere.applyMatrix4(new THREE.Matrix4().setPosition(currentStart));
+        const capMat = new THREE.Matrix4().setPosition(currentStart);
+        capSphere.applyMatrix4(capMat);
         targetArray.push(capSphere);
       }
     }
 
     const end = currentStart;
 
-    // Leaves
+    // Leaves - Huge clusters for volumetric canopy
     if (depth <= 2) {
-      const numLeaves = depth === 0 ? 30 : 15;
+      const numLeaves = depth === 0 ? 120 : 60; // 4x increase in density
       for (let i = 0; i < numLeaves; i++) {
         if (depth === 1 && Math.random() > 0.8) continue;
         const leafMat = new THREE.Matrix4();
@@ -137,11 +137,11 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
         const leafQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), leafDir);
         leafQ.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2));
         
-        const spread = startRad * (10.0 + Math.random() * 4.0);
+        const spread = startRad * (8.0 + Math.random() * 6.0); // Wider spread
         const offset = new THREE.Vector3((Math.random() - 0.5) * spread, (Math.random() - 0.2) * spread * 0.8, (Math.random() - 0.5) * spread);
         const leafPos = end.clone().add(offset);
         
-        const leafScale = 0.35 + Math.random() * 0.25;
+        const leafScale = 0.5 + Math.random() * 0.4; // Larger leaves to fill volume
         leafMat.compose(leafPos, leafQ, new THREE.Vector3(leafScale, leafScale, leafScale));
         
         if (Math.random() > 0.5) leafMatrices1.push(leafMat);
@@ -165,7 +165,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     // Banyan branching
     const numBranches = isTrunk ? (Math.random() > 0.1 ? 3 : 2) : (Math.random() > 0.3 ? 2 : 3);
     for (let i = 0; i < numBranches; i++) {
-      const spreadAngle = isTrunk ? (Math.PI / 6) * (0.7 + Math.random() * 0.4) : (Math.PI / 7) * (0.6 + Math.random() * 0.4); // Tighter, more elegant forks
+      const spreadAngle = isTrunk ? (Math.PI / 4) * (0.8 + Math.random() * 0.4) : (Math.PI / 6) * (0.6 + Math.random() * 0.4);
       const rotAngle = (Math.PI * 2 * i) / numBranches + (Math.random() * 1.0 - 0.5);
 
       const newDir = currentDir.clone();
@@ -189,7 +189,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     }
   };
 
-  // Start building the core tree
+  // Start building the core tree with massive radius
   buildBranch(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true, []);
 
   // Explicitly spawn a balancing branch on the right side (to fix the bare spot in the screenshot)
@@ -206,16 +206,16 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   // ─── GENERATE TREE BASE (ROOTS & ROCKS) ─────────────────────────────────────────
   const rockMatrices: THREE.Matrix4[] = [];
 
-  // Generate Organic Tangled Roots (Grounded)
-  const numRoots = 14;
+  // Generate Organic Tangled Roots (Sprawling like reference image)
+  const numRoots = 45; // Massive root system
   for (let i = 0; i < numRoots; i++) {
     const angle = (Math.PI * 2 * i) / numRoots + (Math.random() * 0.5);
     const dir = new THREE.Vector3(Math.cos(angle), -0.2, Math.sin(angle)).normalize();
     
-    let currentPos = new THREE.Vector3(0, -1.2, 0); 
+    let currentPos = new THREE.Vector3(Math.cos(angle) * 1.5, -1.2, Math.sin(angle) * 1.5); 
     let currentDir = dir.clone();
-    let rad = 0.4 + Math.random() * 0.4;
-    let len = 0.8 + Math.random() * 2.0;
+    let rad = 0.6 + Math.random() * 0.8;
+    let len = 1.5 + Math.random() * 3.0;
 
     const rootPoints: THREE.Vector3[] = [currentPos.clone()];
     const rootRadii: number[] = [rad];
@@ -555,8 +555,8 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
   
   const customUniforms = useRef({ uTime: { value: 0 }, uSeason: { value: 0 } });
 
-  // Restore 6 iterations for a full canopy (optimized from 7)
-  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(6, 5.0, 1.2), []);
+  // Massive initial radius and 6 iterations for a full volumetric canopy
+  const { mergedBranches, mergedTwigs, mergedRoots, rockMatrices, leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, flowPaths } = useMemo(() => generateSeamlessTree(6, 4.5, 4.0), []);
 
 
   // Geometry
@@ -686,13 +686,16 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
           transformed.x += sway * transformed.y;
         `;
 
-      shader.vertexShader = `
+      shader.vertexShader = shader.vertexShader.replace(
+        `#include <common>`,
+        `
+        #include <common>
         uniform float uTime;
         uniform float uSeason;
         varying vec3 vLocalPos;
         varying float vLocalSeason;
-        ${shader.vertexShader}
-      `.replace(
+        `
+      ).replace(
         `#include <begin_vertex>`,
         `
         #include <begin_vertex>
@@ -704,11 +707,13 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         
         float scale = 1.0;
         
-        // Leaves are full size initially, fall off near the end
-        if (localSeason > 0.6 && localSeason < 0.8) {
-           scale = 1.0 - smoothstep(0.6, 0.8, localSeason);
-        } else if (localSeason >= 0.8) {
-           scale = 0.0;
+        
+        // Leaves stay on the tree longer and transition beautifully
+        // Never scale to 0 to keep the canopy full
+        if (localSeason > 0.5 && localSeason < 0.9) {
+           scale = 1.0 - smoothstep(0.5, 0.9, localSeason) * 0.2; // Only shrink slightly
+        } else if (localSeason >= 0.9) {
+           scale = 0.8;
         }
         
         transformed *= scale;
@@ -717,18 +722,21 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         `
       );
       
-      shader.fragmentShader = `
+      shader.fragmentShader = shader.fragmentShader.replace(
+        `#include <common>`,
+        `
+        #include <common>
         uniform float uSeason;
         varying vec3 vLocalPos;
         varying float vLocalSeason;
-        ${shader.fragmentShader}
-      `.replace(
+        `
+      ).replace(
         `#include <color_fragment>`,
         `
         #include <color_fragment>
-        vec3 springColor = vec3(0.5, 0.8, 0.2);
-        vec3 summerColor = vec3(0.15, 0.5, 0.1);
-        vec3 autumnColor = vec3(0.8, 0.3, 0.05);
+        vec3 springColor = vec3(0.05, 0.35, 0.1); // Rich emerald green
+        vec3 summerColor = vec3(0.1, 0.45, 0.1); // Lush green
+        vec3 autumnColor = vec3(0.6, 0.35, 0.05); // Rich gold/brown
         
         // Smoothly blend colors based on the per-leaf local season
         vec3 seasonColor = mix(springColor, summerColor, smoothstep(0.0, 0.3, vLocalSeason));
