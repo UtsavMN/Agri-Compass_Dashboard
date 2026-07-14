@@ -371,48 +371,26 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial, customUniforms:
     ` : "";
 
     shader.fragmentShader = `
-        uniform float uSeason;
-        varying vec2 vUvScale;
-        varying vec3 vWorldPos;
-        ${snoiseGLSL}
-        
-        // Helper to get bark ridge value
-        float getBarkRidge(vec3 pos) {
-           float ridge = abs(snoise(vec3(pos.x * 4.0, pos.y * 0.3, pos.z * 4.0)));
-           ridge += abs(snoise(vec3(pos.x * 12.0, pos.y * 1.5, pos.z * 12.0))) * 0.4;
-           ridge += snoise(vec3(pos.x * 25.0, pos.y * 5.0, pos.z * 25.0)) * 0.15;
-           return ridge;
-        }
-
-        ${shader.fragmentShader}
-      `.replace(
-        `#include <normal_fragment_begin>`,
-        `
-        #include <normal_fragment_begin>
-        // Compute procedural normals for bark depth
-        float eps = 0.01;
-        float r0 = getBarkRidge(vWorldPos);
-        float rx = getBarkRidge(vWorldPos + vec3(eps, 0.0, 0.0));
-        float ry = getBarkRidge(vWorldPos + vec3(0.0, eps, 0.0));
-        float rz = getBarkRidge(vWorldPos + vec3(0.0, 0.0, eps));
-        
-        vec3 grad = vec3(rx - r0, ry - r0, rz - r0) / eps;
-        normal = normalize(normal - grad * 0.8); // Blend procedural bump with actual geometry normal
-        `
-      ).replace(
+      uniform float uSeason;
+      varying vec2 vUvScale;
+      varying vec3 vWorldPos;
+      ${snoiseGLSL}
+      ${shader.fragmentShader}
+    `.replace(
       `#include <color_fragment>`,
       `
       #include <color_fragment>
       
-      float ridge = getBarkRidge(vWorldPos);
+      // Procedural Bark Texture mapped strictly via World Position for seamlessness across merged geometry
+      float n = snoise(vec3(vWorldPos.x * 2.5, vWorldPos.y * 1.5, vWorldPos.z * 2.5));
+      n += snoise(vec3(vWorldPos.x * 15.0, vWorldPos.y * 10.0, vWorldPos.z * 15.0)) * 0.3;
+      n += snoise(vec3(vWorldPos.x * 40.0, vWorldPos.y * 20.0, vWorldPos.z * 40.0)) * 0.22;
       
-      // Realistic, cinematic dark wood colors (cooler, less orange/AI-looking)
-      vec3 deepCrevice = vec3(0.04, 0.03, 0.02); // Almost black for deep grooves
-      vec3 outerBark = vec3(0.18, 0.16, 0.14); // Ashy, realistic aged brown/grey
-      vec3 mossColor = vec3(0.15, 0.22, 0.10); // Subtle, realistic moss
+      vec3 color1 = vec3(0.12, 0.09, 0.06); // Deep rich brown
+      vec3 color2 = vec3(0.24, 0.18, 0.12); // Lighter brown
+      vec3 mossColor = vec3(0.25, 0.32, 0.15); // Vibrant moss green
       
-      // Mix based on the ridge value. High ridge = outer bark, low ridge = deep crevice
-      vec3 barkColor = mix(outerBark, deepCrevice, smoothstep(0.0, 0.8, ridge));
+      vec3 barkColor = mix(color1, color2, (n + 1.0) * 0.5);
       
       // Add moss on the "North" side (based on world position / normal approximation)
       float mossMask = smoothstep(0.2, 0.8, snoise(vWorldPos * 0.5) + vWorldPos.z * 0.05);
