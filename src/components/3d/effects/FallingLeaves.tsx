@@ -106,11 +106,10 @@ export const FallingLeaves = ({ count = 200, petalCount = 100 }: { count?: numbe
   // Leaf Material (Seasonal Tint)
   const leafMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      map: leafTexture,
-      alphaTest: 0.5,
       side: THREE.DoubleSide,
-      roughness: 0.8,
-      metalness: 0.1,
+      roughness: 0.6,
+      metalness: 0.05,
+      color: 0xffffff // Base color, overridden by instances
     });
     
     mat.onBeforeCompile = (shader) => {
@@ -204,15 +203,25 @@ export const FallingLeaves = ({ count = 200, petalCount = 100 }: { count?: numbe
   }, []);
 
   const leafGeometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(0.8, 0.8);
-    geo.translate(0, 0.4, 0);
+    // True 3D curved shape geometry instead of a flat plane to fix the "square confetti" bug
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0); // Stem
+    const width = 0.35;
+    const height = 0.7;
+    shape.bezierCurveTo(width, height * 0.2, width, height * 0.8, 0, height);
+    shape.bezierCurveTo(-width, height * 0.8, -width, height * 0.2, 0, 0);
+
+    const geo = new THREE.ShapeGeometry(shape, 3);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
-      const y = pos.getY(i);
-      const x = pos.getX(i);
-      pos.setZ(i, Math.abs(x) * 0.2 - y * 0.1);
+      let x = pos.getX(i);
+      let y = pos.getY(i);
+      let z = pos.getZ(i);
+      z += Math.abs(x) * 0.25 - y * 0.15; // Cup and droop the leaf
+      pos.setXYZ(i, x, y, z);
     }
     geo.computeVertexNormals();
+    geo.translate(0, -height * 0.5, 0); // Center pivot
     return geo;
   }, []);
 

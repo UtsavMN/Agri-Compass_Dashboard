@@ -68,8 +68,20 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   ) => {
     const segments = 8; // High segments for ultra-smooth curving
     
-    const curvePoints: THREE.Vector3[] = [startPos.clone()];
-    const curveRadii: number[] = [startRad];
+    const curvePoints: THREE.Vector3[] = [];
+    const curveRadii: number[] = [];
+    
+    // Smooth Branch Joints: Inherit parent's trajectory to create a seamless Bezier fork
+    if (currentPath.length > 0) {
+       const parentPrev = currentPath[currentPath.length - 2] || currentPath[currentPath.length - 1];
+       if (parentPrev) {
+          curvePoints.push(parentPrev.pos.clone());
+          curveRadii.push(parentPrev.radius);
+       }
+    }
+    
+    curvePoints.push(startPos.clone());
+    curveRadii.push(startRad);
     
     let currentStart = startPos.clone();
     let currentDir = startDir.clone();
@@ -103,7 +115,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
 
     if (curvePoints.length > 1) {
       const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const tubeGeo = new TaperedTubeGeometry(curve, segments * 3, curveRadii, 8); // Reduced from 16 to 8 segments
+      const tubeGeo = new TaperedTubeGeometry(curve, segments * 3, curveRadii, 24); // Increased from 8 to 24 for perfectly smooth, round trunk
       
       const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
       targetArray.push(tubeGeo);
@@ -119,10 +131,11 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     const end = currentStart;
 
     // Leaves - Huge clusters for volumetric canopy
-    if (depth <= 2) {
-      const numLeaves = depth === 0 ? 120 : 60; // 4x increase in density
+    if (depth <= 4) { // Changed from <= 2 to <= 4 to fill the entire center of the tree
+      const baseLeaves = depth === 0 ? 120 : depth === 1 ? 80 : depth === 2 ? 40 : 15;
+      const numLeaves = baseLeaves;
       for (let i = 0; i < numLeaves; i++) {
-        if (depth === 1 && Math.random() > 0.8) continue;
+        if (depth > 1 && Math.random() > 0.6) continue;
         const leafMat = new THREE.Matrix4();
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
@@ -210,10 +223,13 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   const numRoots = 45; // Massive root system
   for (let i = 0; i < numRoots; i++) {
     const angle = (Math.PI * 2 * i) / numRoots + (Math.random() * 0.5);
-    const dir = new THREE.Vector3(Math.cos(angle), -0.2, Math.sin(angle)).normalize();
     
-    let currentPos = new THREE.Vector3(Math.cos(angle) * 1.5, -1.2, Math.sin(angle) * 1.5); 
-    let currentDir = dir.clone();
+    // Root Flaring: Start higher up inside the trunk and bulge outwards down to the ground
+    const startRadius = initialRadius * 0.85;
+    let currentPos = new THREE.Vector3(Math.cos(angle) * startRadius, 1.0 + Math.random() * 0.5, Math.sin(angle) * startRadius); 
+    
+    // Point diagonally down and outward from the trunk
+    let currentDir = new THREE.Vector3(Math.cos(angle) * 0.8, -1.0, Math.sin(angle) * 0.8).normalize();
     let rad = 0.6 + Math.random() * 0.8;
     let len = 1.5 + Math.random() * 3.0;
 
