@@ -77,7 +77,7 @@ export const DataTree = ({ isMobile = false }: { isMobile?: boolean }) => {
   const treeRef = useRef<THREE.Group>(null);
 
   // Load the highly realistic golden leaf texture
-  const leafTexture = useLoader(THREE.TextureLoader, "/textures/golden_leaf.png");
+  const leafTexture = useLoader(THREE.TextureLoader, "/textures/golden_leaf.webp");
   leafTexture.colorSpace = THREE.SRGBColorSpace;
   leafTexture.magFilter = THREE.LinearFilter;
   leafTexture.minFilter = THREE.LinearMipmapLinearFilter;

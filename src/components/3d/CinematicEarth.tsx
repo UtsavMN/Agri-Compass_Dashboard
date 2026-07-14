@@ -10,10 +10,10 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
 
   // Load textures
   const [colorMap, specularMap, normalMap, cloudsMap] = useLoader(THREE.TextureLoader, [
-    '/textures/earth/earth_atmos_2048.jpg',
-    '/textures/earth/earth_specular_2048.jpg',
-    '/textures/earth/earth_normal_2048.jpg',
-    '/textures/earth/earth_clouds_1024.png'
+    '/textures/earth/earth_atmos_2048.webp',
+    '/textures/earth/earth_specular_2048.webp',
+    '/textures/earth/earth_normal_2048.webp',
+    '/textures/earth/earth_clouds_1024.webp'
   ]);
 
   // Configure textures

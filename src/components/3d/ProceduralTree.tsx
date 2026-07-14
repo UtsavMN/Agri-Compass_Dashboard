@@ -402,6 +402,13 @@ const setupBarkMaterial = (material: THREE.MeshStandardMaterial, customUniforms:
 };
 
 // ─── KNOWLEDGE FLOW SYSTEM ──────────────────────────────────────────────────────
+const _globalUp = new THREE.Vector3(0, 1, 0);
+const _dir = new THREE.Vector3();
+const _right = new THREE.Vector3();
+const _up = new THREE.Vector3();
+const _offset = new THREE.Vector3();
+const _offset2 = new THREE.Vector3();
+
 const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: PathNode[][], maxCount: number }) => {
   const particleCount = maxCount;
   const pointsRef = useRef<THREE.Points>(null);
@@ -483,9 +490,6 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: PathNode[][], maxCoun
     const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
     const alphas = pointsRef.current.geometry.attributes.alpha.array as Float32Array;
     
-    // Up vector for tangent calculations
-    const globalUp = new THREE.Vector3(0, 1, 0);
-    
     particleData.forEach((p, i) => {
       if (reducedMotion) {
         p.pathIndex = i % paths.length;
@@ -525,22 +529,22 @@ const KnowledgeFlowSystem = ({ paths, maxCount }: { paths: PathNode[][], maxCoun
       const radius = p1.radius + (p2.radius - p1.radius) * t;
       
       // Calculate surface tangent
-      const dir = p1.dir.clone().lerp(p2.dir, t).normalize();
-      const right = new THREE.Vector3().crossVectors(dir, globalUp).normalize();
-      if (right.lengthSq() < 0.01) { right.set(1, 0, 0); } // Fallback if pointing straight up
-      const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+      _dir.copy(p1.dir).lerp(p2.dir, t).normalize();
+      _right.crossVectors(_dir, _globalUp).normalize();
+      if (_right.lengthSq() < 0.01) { _right.set(1, 0, 0); } // Fallback if pointing straight up
+      _up.crossVectors(_right, _dir).normalize();
       
       // Spiral slightly around branch over time
       const currentAngle = p.angle + (reducedMotion ? 0 : p.progress * 4.0);
       
       // Offset by radius to sit right on the bark (slightly inside to look like glowing sap veins)
-      const offset = right.clone().multiplyScalar(Math.cos(currentAngle))
-        .add(up.clone().multiplyScalar(Math.sin(currentAngle)))
-        .multiplyScalar(radius * 0.98); // Flush with bark
+      _offset.copy(_right).multiplyScalar(Math.cos(currentAngle));
+      _offset2.copy(_up).multiplyScalar(Math.sin(currentAngle));
+      _offset.add(_offset2).multiplyScalar(radius * 0.98); // Flush with bark
 
-      positions[i*3] = cx + offset.x;
-      positions[i*3+1] = cy + offset.y;
-      positions[i*3+2] = cz + offset.z;
+      positions[i*3] = cx + _offset.x;
+      positions[i*3+1] = cy + _offset.y;
+      positions[i*3+2] = cz + _offset.z;
       
       alphas[i] = reducedMotion 
         ? 0.5 + Math.sin(i * 13.0) * 0.3
@@ -828,6 +832,23 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       fruitMeshRef.current.instanceMatrix.needsUpdate = true;
     }
   }, [leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, rockMatrices]);
+
+  useEffect(() => {
+    return () => {
+      mainBarkMat.dispose();
+      twigMat.dispose();
+      leafMat.dispose();
+      fruitMat.dispose();
+      blossomMat.dispose();
+      leafGeo1.dispose();
+      leafGeo2.dispose();
+      blossomGeo.dispose();
+      fruitGeo.dispose();
+      mergedBranches.dispose();
+      mergedTwigs.dispose();
+      mergedRoots.dispose();
+    };
+  }, [mainBarkMat, twigMat, leafMat, fruitMat, blossomMat, leafGeo1, leafGeo2, blossomGeo, fruitGeo, mergedBranches, mergedTwigs, mergedRoots]);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();

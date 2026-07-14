@@ -1,4 +1,4 @@
-import { useEffect, useRef, Suspense } from "react";
+import { useEffect, useRef, Suspense, lazy } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useScroll, useSpring } from "framer-motion";
 import * as THREE from "three";
@@ -6,16 +6,23 @@ import { EffectComposer, Bloom, DepthOfField, Vignette } from "@react-three/post
 import { PerformanceMonitor } from "@react-three/drei";
 
 // Importing the elements we'll build
-import { CinematicEarth } from "./CinematicEarth";
-import { ProceduralTree } from "./ProceduralTree";
-import { BackgroundLayers } from "./BackgroundLayers";
-import { FallingLeaves } from "./effects/FallingLeaves";
-import { Butterflies } from "./effects/Butterflies";
-import { Fireflies } from "./effects/Fireflies";
-import { VolumetricShafts } from "./effects/VolumetricShafts";
-import { Universe } from "./Universe";
+const CinematicEarth = lazy(() => import("./CinematicEarth").then(m => ({ default: m.CinematicEarth })));
+const ProceduralTree = lazy(() => import("./ProceduralTree").then(m => ({ default: m.ProceduralTree })));
+const BackgroundLayers = lazy(() => import("./BackgroundLayers").then(m => ({ default: m.BackgroundLayers })));
+const FallingLeaves = lazy(() => import("./effects/FallingLeaves").then(m => ({ default: m.FallingLeaves })));
+const Butterflies = lazy(() => import("./effects/Butterflies").then(m => ({ default: m.Butterflies })));
+const Fireflies = lazy(() => import("./effects/Fireflies").then(m => ({ default: m.Fireflies })));
+const VolumetricShafts = lazy(() => import("./effects/VolumetricShafts").then(m => ({ default: m.VolumetricShafts })));
+const Universe = lazy(() => import("./Universe").then(m => ({ default: m.Universe })));
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useQualityStore } from "../../store/useQualityStore";
+
+const SPRING_COLOR = new THREE.Color(0xD0E5FF);
+const SUMMER_COLOR = new THREE.Color(0xFFF0D0);
+const AUTUMN_COLOR = new THREE.Color(0xFFB040);
+const WINTER_COLOR = new THREE.Color(0xA0B0C0);
+const _targetColor = new THREE.Color();
+const FARM_POSITION = new THREE.Vector3(0, -47, -75);
 
 const cameraPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0, 1.5, 6),       // 0: Universe view
@@ -63,16 +70,20 @@ const FogRig = ({ isIntro }: { isIntro: boolean }) => {
 };
 
 const LightRig = ({ isIntro }: { isIntro: boolean }) => {
-  const { scene } = useThree();
+  const sunLightRef = useRef<THREE.DirectionalLight>(null);
+  const ambientLightRef = useRef<THREE.AmbientLight>(null);
+  const hemiLightRef = useRef<THREE.HemisphereLight>(null);
+  
   const { scrollYProgress } = useScroll();
+  const { settings } = useQualityStore();
   const smoothProgress = useSpring(scrollYProgress, {
     damping: 30, stiffness: 70, mass: 1.5, restDelta: 0.001
   });
 
   useFrame(() => {
-    const sunLight = scene.getObjectByName('sunLight') as THREE.DirectionalLight;
-    const ambientLight = scene.getObjectByName('ambientLight') as THREE.AmbientLight;
-    const hemiLight = scene.getObjectByName('hemiLight') as THREE.HemisphereLight;
+    const sunLight = sunLightRef.current;
+    const ambientLight = ambientLightRef.current;
+    const hemiLight = hemiLightRef.current;
     
     if (sunLight && ambientLight && hemiLight) {
       if (isIntro) {
@@ -85,33 +96,27 @@ const LightRig = ({ isIntro }: { isIntro: boolean }) => {
         const season = smoothProgress.get();
         
         // Crisp morning sunlight vs heavy yellow
-        const springColor = new THREE.Color(0xD0E5FF); // Soft crisp cyan/white morning light
-        const summerColor = new THREE.Color(0xFFF0D0); // Gentle warm sunlight
-        const autumnColor = new THREE.Color(0xFFB040); // Deep golden hour
-        const winterColor = new THREE.Color(0xA0B0C0); // Cool mist
-        
-        let targetColor = springColor;
         let intensity = 2.0; // Reduced blowout
         
         if (season < 0.33) {
-          targetColor = springColor.clone().lerp(summerColor, season / 0.33);
+          _targetColor.copy(SPRING_COLOR).lerp(SUMMER_COLOR, season / 0.33);
           intensity = THREE.MathUtils.lerp(2.0, 2.5, season / 0.33);
         } else if (season < 0.66) {
-          targetColor = summerColor.clone().lerp(autumnColor, (season - 0.33) / 0.33);
+          _targetColor.copy(SUMMER_COLOR).lerp(AUTUMN_COLOR, (season - 0.33) / 0.33);
           intensity = THREE.MathUtils.lerp(2.5, 2.0, (season - 0.33) / 0.33);
         } else {
-          targetColor = autumnColor.clone().lerp(winterColor, (season - 0.66) / 0.34);
+          _targetColor.copy(AUTUMN_COLOR).lerp(WINTER_COLOR, (season - 0.66) / 0.34);
           intensity = THREE.MathUtils.lerp(2.0, 1.2, (season - 0.66) / 0.34);
         }
         
-        sunLight.color.copy(targetColor);
+        sunLight.color.copy(_targetColor);
         sunLight.intensity = intensity;
         
         // Soft Bounce Lighting & Ambient - Keep it dark for contrast
         ambientLight.color.setHex(0x0a0c10); // Very dim blue/black ambient
         ambientLight.intensity = 1.0;
         
-        hemiLight.color.copy(targetColor);
+        hemiLight.color.copy(_targetColor);
         hemiLight.groundColor.setHex(0x050608); // Pitch dark ground bounce
         hemiLight.intensity = intensity * 0.15;
 
@@ -121,7 +126,29 @@ const LightRig = ({ isIntro }: { isIntro: boolean }) => {
     }
   });
 
-  return null;
+  return (
+    <>
+      <ambientLight ref={ambientLightRef} intensity={0.1} color="#ffffff" />
+      <hemisphereLight ref={hemiLightRef} groundColor="#050400" color="#ffffff" intensity={0.1} />
+      
+      {/* Enhanced Golden Hour Sun */}
+      <directionalLight 
+        ref={sunLightRef} 
+        position={[15, 15, 10]} 
+        intensity={2.5} 
+        color="#FFD700" 
+        castShadow={settings.shadowMapSize > 0} 
+        shadow-mapSize={[settings.shadowMapSize || 1024, settings.shadowMapSize || 1024]}
+        shadow-camera-near={0.5}
+        shadow-camera-far={100}
+        shadow-camera-left={-30}
+        shadow-camera-right={30}
+        shadow-camera-top={30}
+        shadow-camera-bottom={-30}
+        shadow-bias={-0.001}
+      />
+    </>
+  );
 };
 
 
@@ -170,7 +197,7 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
     } else {
       if (reducedMotion) {
         // Static camera at Farm
-        camera.position.lerp(new THREE.Vector3(0, -47, -75), 0.05);
+        camera.position.lerp(FARM_POSITION, 0.05);
         camera.lookAt(0, -50, -100);
       } else {
         const orbitProgress = smoothProgress.get(); // 0 to 1
@@ -205,33 +232,13 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
       <Canvas
         camera={{ position: [0, 1.5, 6], fov: 45 }}
         gl={{ antialias: false, powerPreference: "high-performance", alpha: true }}
-        dpr={settings.dpr}
+        dpr={Math.min(settings.dpr, 2)}
       >
         <Suspense fallback={null}>
           <PerformanceMonitor onDecline={stepDown} onIncline={stepUp} />
           <fog attach="fog" args={["#1a1500", 10, 70]} />
           <FogRig isIntro={!introComplete} />
           <LightRig isIntro={!introComplete} />
-          
-          <ambientLight name="ambientLight" intensity={0.1} color="#ffffff" />
-          <hemisphereLight name="hemiLight" groundColor="#050400" color="#ffffff" intensity={0.1} />
-          
-          {/* Enhanced Golden Hour Sun */}
-          <directionalLight 
-            name="sunLight" 
-            position={[15, 15, 10]} 
-            intensity={2.5} 
-            color="#FFD700" 
-            castShadow={settings.shadowMapSize > 0} 
-            shadow-mapSize={[settings.shadowMapSize || 1024, settings.shadowMapSize || 1024]}
-            shadow-camera-near={0.5}
-            shadow-camera-far={100}
-            shadow-camera-left={-30}
-            shadow-camera-right={30}
-            shadow-camera-top={30}
-            shadow-camera-bottom={-30}
-            shadow-bias={-0.001}
-          />
           
           <CameraRig isIntro={!introComplete} />
           

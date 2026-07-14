@@ -11,7 +11,7 @@ export const FallingLeaves = ({ count = 200, petalCount = 100 }: { count?: numbe
   const customUniforms = useRef({ uSeason: { value: 0 }, uTime: { value: 0 } });
   
   // Load texture
-  const leafTexture = useLoader(THREE.TextureLoader, '/textures/realistic_leaf.png');
+  const leafTexture = useLoader(THREE.TextureLoader, '/textures/realistic_leaf.webp');
   leafTexture.colorSpace = THREE.SRGBColorSpace;
   
   const generatePhysicsState = (total: number, isPetal: boolean) => {
