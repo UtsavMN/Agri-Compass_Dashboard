@@ -829,24 +829,6 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
     }
   }, [leafMatrices1, leafMatrices2, blossomMatrices, fruitMatrices, rockMatrices]);
 
-  // Memory Cleanup
-  useEffect(() => {
-    return () => {
-      leafGeo1.dispose();
-      leafGeo2.dispose();
-      blossomGeo.dispose();
-      mergedBranches.dispose();
-      mergedTwigs.dispose();
-      mergedRoots.dispose();
-      mainBarkMat.dispose();
-      twigMat.dispose();
-      blossomMat.dispose();
-      leafMat.dispose();
-      fruitGeo.dispose();
-      fruitMat.dispose();
-    };
-  }, [leafGeo1, leafGeo2, blossomGeo, fruitGeo, mergedBranches, mergedTwigs, mergedRoots, mainBarkMat, twigMat, blossomMat, leafMat, fruitMat]);
-
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     customUniforms.current.uTime.value = reducedMotion ? 0 : t;
