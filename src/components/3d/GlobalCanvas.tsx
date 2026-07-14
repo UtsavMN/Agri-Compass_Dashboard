@@ -248,7 +248,7 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
             <BackgroundLayers />
             <ProceduralTree position={[0, -2.5, 0]} />
             {settings.volumetricFog && !reducedMotion ? <VolumetricShafts /> : <></>}
-            <FallingLeaves count={reducedMotion ? 10 : Math.floor(75 * settings.leafDensity)} /> 
+            <FallingLeaves count={reducedMotion ? 10 : Math.floor(250 * settings.leafDensity)} petalCount={30} /> 
             <Butterflies count={settings.butterflyCount} />
             <Fireflies count={settings.particleCount / 2} />
           </group>

@@ -905,7 +905,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       <instancedMesh ref={fruitMeshRef} args={[fruitGeo, fruitMat, fruitMatrices.length]} count={fruitMatrices.length} castShadow />
 
       {/* Knowledge Flow Particles - Glowing Surface Veins */}
-      <KnowledgeFlowSystem paths={flowPaths} maxCount={settings.particleCount} />
+      <KnowledgeFlowSystem paths={flowPaths} maxCount={Math.floor(settings.particleCount * 0.25)} />
     </group>
   );
 };
