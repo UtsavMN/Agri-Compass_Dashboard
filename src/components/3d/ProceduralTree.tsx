@@ -690,6 +690,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         uniform float uTime;
         uniform float uSeason;
         varying vec3 vLocalPos;
+        varying float vLocalSeason;
         ${shader.vertexShader}
       `.replace(
         `#include <begin_vertex>`,
@@ -699,6 +700,8 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float randDelay = fract(sin(worldPos.x * 12.33 + worldPos.z * 4.31) * 43.11) * 0.2;
         float localSeason = max(0.0, uSeason - randDelay);
+        vLocalSeason = localSeason;
+        
         float scale = 1.0;
         
         // Leaves are full size initially, fall off near the end
@@ -717,6 +720,7 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       shader.fragmentShader = `
         uniform float uSeason;
         varying vec3 vLocalPos;
+        varying float vLocalSeason;
         ${shader.fragmentShader}
       `.replace(
         `#include <color_fragment>`,
@@ -726,14 +730,9 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         vec3 summerColor = vec3(0.15, 0.5, 0.1);
         vec3 autumnColor = vec3(0.8, 0.3, 0.05);
         
-        vec3 seasonColor;
-        if (uSeason < 0.25) {
-           seasonColor = mix(springColor, summerColor, uSeason * 4.0);
-        } else if (uSeason < 0.5) {
-           seasonColor = mix(summerColor, autumnColor, (uSeason - 0.25) * 4.0);
-        } else {
-           seasonColor = autumnColor;
-        }
+        // Smoothly blend colors based on the per-leaf local season
+        vec3 seasonColor = mix(springColor, summerColor, smoothstep(0.0, 0.3, vLocalSeason));
+        seasonColor = mix(seasonColor, autumnColor, smoothstep(0.3, 0.6, vLocalSeason));
         
         // Procedural gradient using local position instead of UVs
         float gradient = clamp(vLocalPos.y * 0.7, 0.0, 1.0);
