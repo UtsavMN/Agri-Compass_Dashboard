@@ -174,7 +174,10 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
       } else {
         const orbitProgress = smoothProgress.get(); // 0 to 1
         const angle = orbitProgress * Math.PI * 1.5;
-        const radius = 25 - (orbitProgress * 5);
+        
+        // Start further away (35) to prevent crowding, but zoom in dramatically at the very end (18)
+        const radius = 35 - (Math.pow(orbitProgress, 2.5) * 17); 
+        
         const breathe = Math.sin(time * 0.6) * 0.07;
         const targetX = Math.sin(angle) * radius + mx * 0.8;
         const targetZ = -100 + Math.cos(angle) * radius;
@@ -242,7 +245,7 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           {/* Farm Level Group */}
           <group position={[0, -50, -100]}>
             <BackgroundLayers />
-            <ProceduralTree position={[0, -2.5, -4]} />
+            <ProceduralTree position={[0, -2.5, 0]} />
             {settings.volumetricFog && !reducedMotion ? <VolumetricShafts /> : <></>}
             <FallingLeaves count={reducedMotion ? 10 : Math.floor(75 * settings.leafDensity)} /> 
             <Butterflies count={settings.butterflyCount} />

@@ -701,8 +701,12 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         #include <begin_vertex>
         vLocalPos = position;
         vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-        float randDelay = fract(sin(worldPos.x * 12.33 + worldPos.z * 4.31) * 43.11) * 0.2;
-        float localSeason = max(0.0, uSeason - randDelay);
+        
+        // Vastly increase random variation so leaves transition at completely different times
+        float randDelay = fract(sin(worldPos.x * 23.33 + worldPos.y * 11.23 + worldPos.z * 4.31) * 43.11) * 0.45;
+        
+        // Smoothly step the season based on the delay
+        float localSeason = clamp(uSeason - randDelay, 0.0, 1.0);
         vLocalSeason = localSeason;
         
         float scale = 1.0;
@@ -736,11 +740,17 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
         #include <color_fragment>
         vec3 springColor = vec3(0.05, 0.35, 0.1); // Rich emerald green
         vec3 summerColor = vec3(0.1, 0.45, 0.1); // Lush green
-        vec3 autumnColor = vec3(0.6, 0.35, 0.05); // Rich gold/brown
+        
+        // Magical, radiant Erdtree golden color for the bottom of the page
+        vec3 goldenColor = vec3(1.0, 0.75, 0.15); // Radiant gold
+        vec3 amberColor = vec3(0.9, 0.4, 0.0);   // Deep amber
         
         // Smoothly blend colors based on the per-leaf local season
         vec3 seasonColor = mix(springColor, summerColor, smoothstep(0.0, 0.3, vLocalSeason));
-        seasonColor = mix(seasonColor, autumnColor, smoothstep(0.3, 0.6, vLocalSeason));
+        
+        // Transition into the magical golden state
+        vec3 magicalAutumn = mix(goldenColor, amberColor, fract(vLocalPos.x * 4.0));
+        seasonColor = mix(seasonColor, magicalAutumn, smoothstep(0.4, 0.8, vLocalSeason));
         
         // Procedural gradient using local position instead of UVs
         float gradient = clamp(vLocalPos.y * 0.7, 0.0, 1.0);
