@@ -269,7 +269,7 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
 };
 
 export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
-  const { settings, stepUp, stepDown } = useQualityStore();
+  const { settings, profile, stepUp, stepDown } = useQualityStore();
   const reducedMotion = useReducedMotion();
 
   return (
@@ -306,14 +306,16 @@ export const GlobalCanvas = ({ introComplete }: { introComplete: boolean }) => {
           </group>
 
           <EffectComposer multisampling={0}>
-            <Bloom 
-              luminanceThreshold={0.2} 
-              luminanceSmoothing={0.9} 
-              intensity={settings.bloom} 
-              mipmapBlur 
-            />
+            {profile !== "mobile" && settings.bloom > 0 ? (
+              <Bloom 
+                luminanceThreshold={0.2} 
+                luminanceSmoothing={0.9} 
+                intensity={settings.bloom} 
+                mipmapBlur={settings.dpr > 1.0} 
+              />
+            ) : <></>}
             {/* Depth of field only when we are orbiting tree and high quality */}
-            {introComplete && settings.dpr > 1.0 ? (
+            {introComplete && profile !== "mobile" && settings.dpr > 1.0 ? (
               <DepthOfField 
                 focusDistance={0.015} 
                 focalLength={0.1} 

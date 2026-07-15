@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { GeoBoundaries } from "./GeoBoundaries";
+import { useQualityStore } from "../../store/useQualityStore";
 
 export const CinematicEarth = ({ position }: { position: [number, number, number] }) => {
   const earthGroupRef = useRef<THREE.Group>(null);
@@ -24,7 +25,9 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     t.wrapS = THREE.RepeatWrapping;
   });
 
+  const { profile } = useQualityStore();
   const earthRadius = 2.5;
+  const segments = profile === "mobile" ? 32 : 64;
 
   const earthMat = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
@@ -196,12 +199,12 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     <group ref={earthGroupRef} position={position}>
       {/* Earth Surface */}
       <mesh material={earthMat} castShadow receiveShadow>
-        <sphereGeometry args={[earthRadius, 64, 64]} />
+        <sphereGeometry args={[earthRadius, segments, segments]} />
       </mesh>
       
       {/* Clouds Layer */}
       <mesh ref={cloudRef} castShadow receiveShadow>
-        <sphereGeometry args={[earthRadius + 0.02, 64, 64]} />
+        <sphereGeometry args={[earthRadius + 0.02, segments, segments]} />
         <meshStandardMaterial 
           map={cloudsMap}
           transparent={true}
@@ -216,7 +219,7 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
       
       {/* Atmosphere Glow */}
       <mesh material={atmosMat}>
-        <sphereGeometry args={[earthRadius + 0.06, 64, 64]} />
+        <sphereGeometry args={[earthRadius + 0.06, segments, segments]} />
       </mesh>
       
       {/* Karnataka Cinematic Beacon */}
