@@ -33,14 +33,14 @@ const dynamicLookCurve = new THREE.CatmullRomCurve3([
 
 const sharedEuler = new THREE.Euler(0, 0, 0, 'XYZ');
 const getEarthSurfacePoint = (latDeg: number, lonDeg: number, radius: number, time: number, target: THREE.Vector3) => {
-  const lat = latDeg * (Math.PI / 180);
-  const lonRad = -lonDeg * (Math.PI / 180);
-  target.set(
-    -radius * Math.cos(lat) * Math.sin(lonRad),
-    radius * Math.sin(lat),
-    -radius * Math.cos(lat) * Math.cos(lonRad)
-  );
-  sharedEuler.set(0.1, 1.764 + (time * 0.02), 0, 'XYZ');
+  const phi = (90 - latDeg) * (Math.PI / 180);
+  const theta = (lonDeg + 90) * (Math.PI / 180);
+  
+  target.setFromSphericalCoords(radius, phi, theta);
+  
+  // Rotate Earth so India (78.9E -> theta=168.9 deg) faces +Z (theta=0)
+  // Offset = -168.9 deg = -2.947 rad
+  sharedEuler.set(0.1, -2.947 + (time * 0.02), 0, 'XYZ');
   target.applyEuler(sharedEuler);
   return target;
 };

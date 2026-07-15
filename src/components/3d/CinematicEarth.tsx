@@ -172,8 +172,8 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     const t = state.clock.getElapsedTime();
     customUniforms.current.uTime.value = t;
 
-    // India is at 78.9E, we want it facing +Z (180E). Diff = 101.1 deg = 1.764 rad.
-    earthGroupRef.current.rotation.y = 1.764 + (t * 0.02);
+    // Offset = -168.9 deg = -2.947 rad
+    earthGroupRef.current.rotation.y = -2.947 + (t * 0.02);
     earthGroupRef.current.rotation.x = 0.1; // Axial tilt
 
     // Clouds rotate slightly faster than Earth for parallax
@@ -198,14 +198,15 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     }
   });
 
-  // Calculate Karnataka position
-  // Lat: 15.31 N, Lon: 75.71 E
-  const lat = 15.31 * (Math.PI / 180);
-  const lonRad = -75.71 * (Math.PI / 180);
+  const latDeg = 15.31;
+  const lonDeg = 75.71;
+  const phi = (90 - latDeg) * (Math.PI / 180);
+  const theta = (lonDeg + 90) * (Math.PI / 180);
   const r = earthRadius + 0.01;
-  const kX = -r * Math.cos(lat) * Math.sin(lonRad);
-  const kY = r * Math.sin(lat);
-  const kZ = -r * Math.cos(lat) * Math.cos(lonRad);
+  
+  const kX = r * Math.sin(phi) * Math.sin(theta);
+  const kY = r * Math.cos(phi);
+  const kZ = r * Math.sin(phi) * Math.cos(theta);
 
   return (
     <group ref={earthGroupRef} position={position}>
