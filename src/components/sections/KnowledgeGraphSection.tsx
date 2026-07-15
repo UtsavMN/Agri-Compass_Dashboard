@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { LAYOUT_SPRING } from "../../constants/springs";
 import { DiscoveryEngine, type ConceptNode, type Recommendation } from "../../services/DiscoveryEngine";
@@ -161,65 +162,68 @@ export const KnowledgeGraphSection = () => {
       </Container>
 
       {/* Interactive Learning Card Modal */}
-      <AnimatePresence>
-        {modalNode && (
-          <motion.div
-            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
-            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40"
-            onClick={() => setModalNode(null)}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {modalNode && (
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 40 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-2xl overflow-hidden bg-[#0A0900] border border-[var(--color-knowledge-gold)]/20 rounded-2xl shadow-2xl"
+              initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+              animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
+              exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40"
+              onClick={() => setModalNode(null)}
             >
-              {/* Subtle top glow */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--color-knowledge-gold)]/50 to-transparent"></div>
-              
-              <button
-                onClick={() => setModalNode(null)}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0, y: 40 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0, y: 40 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-2xl overflow-hidden bg-[#0A0900] border border-[var(--color-knowledge-gold)]/20 rounded-2xl shadow-2xl"
               >
-                <span className="text-xl leading-none">&times;</span>
-              </button>
-
-              <div className="p-8 md:p-10">
-                <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-3 block" color="gold">
-                  Learning Module Preview
-                </Typography>
-                <Typography variant="heading-1" className="mb-4" color="primary">
-                  {modalNode.title}
-                </Typography>
+                {/* Subtle top glow */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--color-knowledge-gold)]/50 to-transparent"></div>
                 
-                <div className="h-[1px] w-full bg-[var(--color-glass-border,rgba(255,255,255,0.06))] my-6"></div>
-                
-                <Typography variant="body-md" color="secondary" className="mb-8 leading-relaxed">
-                  <span className="font-medium text-white">Summary: </span>{modalNode.description}
-                  <br/><br/>
-                  <span className="italic opacity-70">
-                    This is an interactive preview. In the full application, this card will expand into a complete lesson containing interactive quizzes, detailed scientific explanations, and actionable farming tasks tailored to your farm's data.
-                  </span>
-                </Typography>
-                
-                <div className="flex justify-end gap-4 mt-8">
-                  <Button variant="ghost" onClick={() => setModalNode(null)} className="px-6 py-2 border border-white/10 text-white/70">
-                    Close
-                  </Button>
-                  <Button variant="primary" onClick={handleBeginLesson} className="px-6 py-2">
-                    {isStartingLesson ? "Loading..." : "Begin Lesson"}
-                  </Button>
+                <button
+                  onClick={() => setModalNode(null)}
+                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
+                >
+                  <span className="text-xl leading-none">&times;</span>
+                </button>
+  
+                <div className="p-8 md:p-10">
+                  <Typography variant="caption" className="uppercase tracking-[0.15em] font-medium mb-3 block" color="gold">
+                    Learning Module Preview
+                  </Typography>
+                  <Typography variant="heading-1" className="mb-4" color="primary">
+                    {modalNode.title}
+                  </Typography>
+                  
+                  <div className="h-[1px] w-full bg-[var(--color-glass-border,rgba(255,255,255,0.06))] my-6"></div>
+                  
+                  <Typography variant="body-md" color="secondary" className="mb-8 leading-relaxed">
+                    <span className="font-medium text-white">Summary: </span>{modalNode.description}
+                    <br/><br/>
+                    <span className="italic opacity-70">
+                      This is an interactive preview. In the full application, this card will expand into a complete lesson containing interactive quizzes, detailed scientific explanations, and actionable farming tasks tailored to your farm's data.
+                    </span>
+                  </Typography>
+                  
+                  <div className="flex justify-end gap-4 mt-8">
+                    <Button variant="ghost" onClick={() => setModalNode(null)} className="px-6 py-2 border border-white/10 text-white/70">
+                      Close
+                    </Button>
+                    <Button variant="primary" onClick={handleBeginLesson} className="px-6 py-2">
+                      {isStartingLesson ? "Loading..." : "Begin Lesson"}
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
     </section>
   );
