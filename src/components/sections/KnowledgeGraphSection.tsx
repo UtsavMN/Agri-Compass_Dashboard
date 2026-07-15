@@ -14,6 +14,7 @@ export const KnowledgeGraphSection = () => {
   const [activeNode, setActiveNode] = useState<ConceptNode | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [modalNode, setModalNode] = useState<ConceptNode | null>(null);
+  const [isStartingLesson, setIsStartingLesson] = useState(false);
 
   useEffect(() => {
     // Initial state setup
@@ -32,10 +33,19 @@ export const KnowledgeGraphSection = () => {
     }
   }, [activeNode]);
 
-  // When a user selects a recommended node, we set it as active and open the modal
   const handleNodeClick = (node: ConceptNode) => {
     setActiveNode(node);
     setModalNode(node);
+    setIsStartingLesson(false);
+  };
+
+  const handleBeginLesson = () => {
+    setIsStartingLesson(true);
+    setTimeout(() => {
+      alert("This would transition you into the interactive 3D lesson module for " + modalNode?.title);
+      setModalNode(null);
+      setIsStartingLesson(false);
+    }, 800);
   };
 
   return (
@@ -201,8 +211,8 @@ export const KnowledgeGraphSection = () => {
                   <Button variant="ghost" onClick={() => setModalNode(null)} className="px-6 py-2 border border-white/10 text-white/70">
                     Close
                   </Button>
-                  <Button variant="primary" onClick={() => setModalNode(null)} className="px-6 py-2">
-                    Begin Lesson
+                  <Button variant="primary" onClick={handleBeginLesson} className="px-6 py-2">
+                    {isStartingLesson ? "Loading..." : "Begin Lesson"}
                   </Button>
                 </div>
               </div>

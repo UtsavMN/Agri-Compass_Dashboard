@@ -24,12 +24,9 @@ const WINTER_COLOR = new THREE.Color(0xA0B0C0);
 const _targetColor = new THREE.Color();
 const FARM_POSITION = new THREE.Vector3(0, -47, -75);
 
-const dynamicCamCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()
-]);
-const dynamicLookCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()
-]);
+const _targetCamPos = new THREE.Vector3();
+const _targetLookPos = new THREE.Vector3();
+const _currentLookTarget = new THREE.Vector3();
 
 const sharedEuler = new THREE.Euler(0, 0, 0, 'XYZ');
 const getEarthSurfacePoint = (latDeg: number, lonDeg: number, radius: number, time: number, target: THREE.Vector3) => {
@@ -194,26 +191,33 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
       } else {
         introTime.current += delta;
         const t = Math.min(introTime.current / 24.0, 1.0);
-        const easeT = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
-        
-        // Update dynamic splines for perfect planetary tracking
-        dynamicCamCurve.points[0].set(0, 1.5, 6); // Universe
-        getEarthSurfacePoint(20.5, 78.9, 3.8, time, dynamicCamCurve.points[1]); // India Hover
-        getEarthSurfacePoint(15.31, 75.71, 2.8, time, dynamicCamCurve.points[2]); // Karnataka Close
-        dynamicCamCurve.points[3].set(0, -20, -40); // Falling
-        dynamicCamCurve.points[4].set(0, -47, -75); // Farm
-        
-        dynamicLookCurve.points[0].set(0, 0, 0);
-        getEarthSurfacePoint(20.5, 78.9, 2.5, time, dynamicLookCurve.points[1]);
-        getEarthSurfacePoint(15.31, 75.71, 2.5, time, dynamicLookCurve.points[2]);
-        dynamicLookCurve.points[3].set(0, -25, -50);
-        dynamicLookCurve.points[4].set(0, -50, -100);
+        // Smooth staged lerping instead of recalculating splines to prevent wobbling
+        if (t < 0.2) {
+          _targetCamPos.set(0, 1.5, 6);
+          _targetLookPos.set(0, 0, 0);
+        } else if (t < 0.5) {
+          getEarthSurfacePoint(20.5, 78.9, 3.8, time, _targetCamPos);
+          getEarthSurfacePoint(20.5, 78.9, 0, time, _targetLookPos);
+        } else if (t < 0.75) {
+          getEarthSurfacePoint(15.31, 75.71, 2.52, time, _targetCamPos);
+          getEarthSurfacePoint(15.31, 75.71, 0, time, _targetLookPos);
+        } else if (t < 0.9) {
+          _targetCamPos.set(0, -20, -40);
+          _targetLookPos.set(0, -25, -50);
+        } else {
+          _targetCamPos.set(0, -47, -75);
+          _targetLookPos.set(0, -50, -100);
+        }
 
-        const camPos = dynamicCamCurve.getPointAt(easeT);
-        const lookPos = dynamicLookCurve.getPointAt(easeT);
+        // Extremely smooth interpolation
+        camera.position.lerp(_targetCamPos, 0.035);
+        _currentLookTarget.lerp(_targetLookPos, 0.04);
         
-        camera.position.set(camPos.x + mx * 0.5, camPos.y + my * 0.5, camPos.z);
-        camera.lookAt(lookPos);
+        // Add mouse parallax on top of the interpolated position
+        camera.position.x += mx * 0.02;
+        camera.position.y += my * 0.02;
+        
+        camera.lookAt(_currentLookTarget);
       }
     } else {
       if (reducedMotion) {

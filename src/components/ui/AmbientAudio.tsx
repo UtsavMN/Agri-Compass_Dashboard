@@ -15,10 +15,8 @@ const SpeakerXMarkIcon = ({ className }: { className?: string }) => (
 
 export const AmbientAudio = () => {
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const masterGainRef = useRef<GainNode | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     const handleInteraction = () => {
@@ -27,7 +25,6 @@ export const AmbientAudio = () => {
       }
     };
     
-    // Scroll does NOT unlock Web Audio API in modern browsers. Only explicit user gestures.
     window.addEventListener("click", handleInteraction);
     window.addEventListener("keydown", handleInteraction);
     window.addEventListener("touchstart", handleInteraction);
@@ -40,97 +37,36 @@ export const AmbientAudio = () => {
   }, [hasInteracted]);
 
   useEffect(() => {
-    if (!hasInteracted || isPlaying) return;
-
-    try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioContext();
-      audioCtxRef.current = ctx;
-      
-      // If the browser suspended it, resume it
-      if (ctx.state === 'suspended') {
-         ctx.resume();
+    if (hasInteracted && audioRef.current) {
+      if (!isMuted) {
+        audioRef.current.volume = 0.5;
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((e) => console.log("Audio playback prevented:", e));
+        }
+      } else {
+        audioRef.current.pause();
       }
-
-      // Master volume control
-      const masterGain = ctx.createGain();
-      masterGain.gain.value = 0.001; // Start almost silent
-      masterGain.connect(ctx.destination);
-      masterGainRef.current = masterGain;
-
-      // Drone base (Deep rumble)
-      const osc1 = ctx.createOscillator();
-      osc1.type = "sine";
-      osc1.frequency.value = 43.65; // F1
-      
-      const osc2 = ctx.createOscillator();
-      osc2.type = "triangle";
-      osc2.frequency.value = 65.41; // C2
-      
-      // Subtle organic texture
-      const lfo = ctx.createOscillator();
-      lfo.type = "sine";
-      lfo.frequency.value = 0.1; // Very slow modulation
-
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 2; // modulation depth
-      lfo.connect(lfoGain);
-      lfoGain.connect(osc2.frequency);
-
-      // Lowpass filter to muffle it and make it cinematic
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.value = 200;
-      filter.Q.value = 1;
-
-      osc1.connect(filter);
-      osc2.connect(filter);
-      filter.connect(masterGain);
-
-      osc1.start();
-      osc2.start();
-      lfo.start();
-
-      // Fade in over 10 seconds
-      masterGain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 10);
-      setIsPlaying(true);
-      
-    } catch (e) {
-      console.warn("Web Audio API not supported", e);
     }
-    
-    return () => {
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
-      }
-    };
-  }, [hasInteracted, isPlaying]);
+  }, [hasInteracted, isMuted]);
 
   const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Don't trigger other click handlers
+    e.stopPropagation();
     if (!hasInteracted) {
       setHasInteracted(true);
-    }
-    
-    if (audioCtxRef.current && masterGainRef.current) {
-      const ctx = audioCtxRef.current;
-      const gain = masterGainRef.current;
-      if (isMuted) {
-         if (ctx.state === 'suspended') ctx.resume();
-         gain.gain.setTargetAtTime(0.15, ctx.currentTime, 0.5);
-         setIsMuted(false);
-      } else {
-         gain.gain.setTargetAtTime(0.001, ctx.currentTime, 0.5);
-         setIsMuted(true);
-      }
+      setIsMuted(false); // Make sure it plays when they explicitly click the sound button first
     } else {
-       // If clicked before initialized, it will initialize muted
-       setIsMuted(!isMuted);
+      setIsMuted(!isMuted);
     }
   };
 
   return (
     <>
+      <audio 
+        ref={audioRef} 
+        src="https://cdn.freesound.org/previews/515/515234_11100366-lq.mp3" 
+        loop 
+      />
       <AnimatePresence>
         {!hasInteracted && (
           <motion.div
