@@ -202,16 +202,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
   // Start building the core tree with massive radius
   buildBranch(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true, []);
 
-  // Explicitly spawn a balancing branch on the right side (to fix the bare spot in the screenshot)
-  buildBranch(
-    new THREE.Vector3(0.5, 1.8, 0.2), // Midway up the trunk on the right
-    new THREE.Vector3(1.0, 0.4, 0.3).normalize(), // Pointing right and slightly up/forward
-    initialLength * 0.7, 
-    initialRadius * 0.65, 
-    iterations - 1, 
-    false, 
-    []
-  );
+
 
   // ─── GENERATE TREE BASE (ROOTS & ROCKS) ─────────────────────────────────────────
   const rockMatrices: THREE.Matrix4[] = [];
