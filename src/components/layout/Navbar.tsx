@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LAYOUT_SPRING } from "../../constants/springs";
 import { useAudio } from "../../hooks/useAudio";
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isMuted, toggleMute, playClick } = useAudio();
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export const Navbar = () => {
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="text-[var(--color-text-tertiary)] hover:text-[var(--color-knowledge-gold)] transition-colors hidden md:block"
+            className="text-[var(--color-text-tertiary)] hover:text-[var(--color-knowledge-gold)] transition-colors hidden md:block w-11 h-11 flex items-center justify-center"
             aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
           >
             {isMuted ? "🔇" : "🔊"}
@@ -77,7 +78,7 @@ export const Navbar = () => {
             onClick={playClick}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="text-[var(--color-text-tertiary)] hover:text-white transition-colors"
+            className="text-[var(--color-text-tertiary)] hover:text-white transition-colors w-11 h-11 flex items-center justify-center"
             title="GitHub Repository"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
@@ -93,12 +94,70 @@ export const Navbar = () => {
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
             className="flex-shrink-0 px-4 py-1.5 md:px-5 md:py-2 bg-[var(--color-knowledge-gold)] text-[var(--color-earth-black)] text-[10px] md:text-xs font-semibold
-                       font-mono rounded-lg transition-all uppercase tracking-[0.3em] shadow-[0_0_15px_rgba(229,208,143,0.3)] hover:scale-105 active:scale-95"
+                       font-mono rounded-lg transition-all uppercase tracking-[0.3em] shadow-[0_0_15px_rgba(229,208,143,0.3)] hover:scale-105 active:scale-95 min-h-[44px] flex items-center justify-center"
           >
             Live Demo →
           </motion.a>
+          
+          {/* Mobile Hamburger Button */}
+          <button 
+            className="md:hidden w-11 h-11 flex items-center justify-center text-[var(--color-text-tertiary)] hover:text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
+      
+      {/* Mobile Dropdown Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t border-[var(--color-glass-border,rgba(255,255,255,0.06))] bg-[var(--color-earth-black)]/95 backdrop-blur-xl overflow-hidden"
+          >
+            <div className="flex flex-col p-6 gap-6">
+              {[
+                { label: "Features",    href: "#features" },
+                { label: "Engineering", href: "#engineering" },
+                { label: "Team",        href: "#team" },
+                { label: "Vision",      href: "#vision" },
+              ].map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-[var(--color-text-secondary)] text-base font-mono min-h-[44px] flex items-center"
+                >
+                  {item.label}
+                </a>
+              ))}
+              
+              <div className="h-[1px] w-full bg-white/10 my-2"></div>
+              
+              <button
+                onClick={() => {
+                  playClick();
+                  toggleMute();
+                }}
+                className="flex items-center gap-4 text-[var(--color-text-secondary)] min-h-[44px] text-left font-mono text-sm"
+              >
+                <span>{isMuted ? "🔇" : "🔊"}</span>
+                {isMuted ? "Unmute Ambient Sound" : "Mute Ambient Sound"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };

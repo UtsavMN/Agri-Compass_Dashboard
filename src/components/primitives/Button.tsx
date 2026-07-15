@@ -33,6 +33,7 @@ export const Button: React.FC<ButtonProps> = ({
     cursor: 'pointer',
     color: isChip ? 'var(--color-knowledge-gold)' : (isPrimary ? 'var(--color-knowledge-gold)' : 'var(--color-text-primary)'),
     padding: isChip ? '0.4rem 1.2rem' : '0.85rem 2rem',
+    minHeight: isChip ? 'auto' : '44px',
     borderRadius: '9999px',
     border: isPrimary 
       ? '1px solid rgba(229, 208, 143, 0.4)' 
