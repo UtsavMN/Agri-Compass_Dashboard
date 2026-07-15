@@ -17,14 +17,21 @@ export const AmbientAudio = () => {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const handleInteraction = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+      // Play synchronously on first tap to satisfy mobile browser policies
+      if (audioRef.current && !isMuted) {
+        audioRef.current.volume = 0.5;
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => console.log("Audio play prevented:", e));
+        }
+      }
+    }
+  };
 
   useEffect(() => {
-    const handleInteraction = () => {
-      if (!hasInteracted) {
-        setHasInteracted(true);
-      }
-    };
-    
     window.addEventListener("click", handleInteraction);
     window.addEventListener("keydown", handleInteraction);
     window.addEventListener("touchstart", handleInteraction);
@@ -34,29 +41,27 @@ export const AmbientAudio = () => {
       window.removeEventListener("keydown", handleInteraction);
       window.removeEventListener("touchstart", handleInteraction);
     };
-  }, [hasInteracted]);
-
-  useEffect(() => {
-    if (hasInteracted && audioRef.current) {
-      if (!isMuted) {
-        audioRef.current.volume = 0.5;
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch((e) => console.log("Audio playback prevented:", e));
-        }
-      } else {
-        audioRef.current.pause();
-      }
-    }
   }, [hasInteracted, isMuted]);
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!hasInteracted) {
       setHasInteracted(true);
-      setIsMuted(false); // Make sure it plays when they explicitly click the sound button first
+      setIsMuted(false);
+      if (audioRef.current) {
+        audioRef.current.volume = 0.5;
+        audioRef.current.play().catch(e => console.log("Audio play prevented:", e));
+      }
     } else {
-      setIsMuted(!isMuted);
+      const nextMuted = !isMuted;
+      setIsMuted(nextMuted);
+      if (audioRef.current) {
+        if (nextMuted) {
+          audioRef.current.pause();
+        } else {
+          audioRef.current.play().catch(e => console.log("Audio play prevented:", e));
+        }
+      }
     }
   };
 

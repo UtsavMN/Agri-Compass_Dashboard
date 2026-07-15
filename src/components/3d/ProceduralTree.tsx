@@ -864,11 +864,11 @@ export const ProceduralTree = ({ position = [0, -10, -15] }: { position?: [numbe
       <mesh geometry={mergedTwigs} material={twigMat} castShadow receiveShadow />
       
       {/* Leaves (Multiple Meshes for Variation) */}
-      <instancedMesh ref={leafMeshRef1} args={[leafGeo1, leafMat, leafMatrices1.length]} count={Math.floor(leafMatrices1.length * settings.leafDensity)} castShadow receiveShadow />
-      <instancedMesh ref={leafMeshRef2} args={[leafGeo2, leafMat, leafMatrices2.length]} count={Math.floor(leafMatrices2.length * settings.leafDensity)} castShadow receiveShadow />
+      <instancedMesh ref={leafMeshRef1} args={[leafGeo1, leafMat, leafMatrices1.length]} count={leafMatrices1.length} castShadow receiveShadow />
+      <instancedMesh ref={leafMeshRef2} args={[leafGeo2, leafMat, leafMatrices2.length]} count={leafMatrices2.length} castShadow receiveShadow />
       
       {/* Blossoms */}
-      <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} count={Math.floor(blossomMatrices.length * settings.leafDensity)} receiveShadow />
+      <instancedMesh ref={blossomMeshRef} args={[blossomGeo, blossomMat, blossomMatrices.length]} count={blossomMatrices.length} receiveShadow />
 
       {/* Harvest/Fruit Nodes (Application Projects) */}
       <instancedMesh ref={fruitMeshRef} args={[fruitGeo, fruitMat, fruitMatrices.length]} count={fruitMatrices.length} castShadow />
