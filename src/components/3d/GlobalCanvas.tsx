@@ -40,7 +40,7 @@ const getEarthSurfacePoint = (latDeg: number, lonDeg: number, radius: number, ti
     radius * Math.sin(lat),
     -radius * Math.cos(lat) * Math.cos(lonRad)
   );
-  sharedEuler.set(0.1, time * 0.02, 0, 'XYZ');
+  sharedEuler.set(0.1, 1.764 + (time * 0.02), 0, 'XYZ');
   target.applyEuler(sharedEuler);
   return target;
 };

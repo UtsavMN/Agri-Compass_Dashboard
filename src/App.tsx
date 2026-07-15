@@ -1,7 +1,6 @@
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
-import { CustomCursor } from "./components/layout/CustomCursor";
 import { GlobalGrain } from "./components/layout/GlobalGrain";
 
 const NotFound = () => (
@@ -18,7 +17,6 @@ export default function App() {
   return (
     <>
       <GlobalGrain />
-      <CustomCursor />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />

@@ -172,8 +172,8 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     const t = state.clock.getElapsedTime();
     customUniforms.current.uTime.value = t;
 
-    // Slow rotation
-    earthGroupRef.current.rotation.y += delta * 0.02;
+    // India is at 78.9E, we want it facing +Z (180E). Diff = 101.1 deg = 1.764 rad.
+    earthGroupRef.current.rotation.y = 1.764 + (t * 0.02);
     earthGroupRef.current.rotation.x = 0.1; // Axial tilt
 
     // Clouds rotate slightly faster than Earth for parallax
