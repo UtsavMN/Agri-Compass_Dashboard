@@ -196,14 +196,38 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
           _targetCamPos.set(0, 1.5, 6);
           _targetLookPos.set(0, 0, 0);
         } else if (t < 0.5) {
-          getEarthSurfacePoint(20.5, 78.9, 3.8, time, _targetCamPos);
+          // Dive to India
+          const progress = (t - 0.2) / 0.3;
+          const ease = progress * progress * (3 - 2 * progress);
+          const r = THREE.MathUtils.lerp(6, 3.8, ease);
+          
+          getEarthSurfacePoint(20.5, 78.9, r, time, _targetCamPos);
           getEarthSurfacePoint(20.5, 78.9, 0, time, _targetLookPos);
         } else if (t < 0.75) {
-          getEarthSurfacePoint(15.31, 75.71, 2.52, time, _targetCamPos);
-          getEarthSurfacePoint(15.31, 75.71, 0, time, _targetLookPos);
+          // Slide from India to Karnataka while zooming in closer
+          const progress = (t - 0.5) / 0.25;
+          const ease = progress * progress * (3 - 2 * progress);
+          const lat = THREE.MathUtils.lerp(20.5, 15.31, ease);
+          const lon = THREE.MathUtils.lerp(78.9, 75.71, ease);
+          const r = THREE.MathUtils.lerp(3.8, 2.52, ease);
+          
+          getEarthSurfacePoint(lat, lon, r, time, _targetCamPos);
+          getEarthSurfacePoint(lat, lon, 0, time, _targetLookPos);
         } else if (t < 0.9) {
-          _targetCamPos.set(0, -20, -40);
-          _targetLookPos.set(0, -25, -50);
+          // Transition to falling
+          const progress = (t - 0.75) / 0.15;
+          const ease = progress * progress * (3 - 2 * progress);
+          
+          const startCam = new THREE.Vector3();
+          const startLook = new THREE.Vector3();
+          getEarthSurfacePoint(15.31, 75.71, 2.52, time, startCam);
+          getEarthSurfacePoint(15.31, 75.71, 0, time, startLook);
+          
+          const fallPos = new THREE.Vector3(0, -20, -40);
+          const fallLook = new THREE.Vector3(0, -25, -50);
+          
+          _targetCamPos.lerpVectors(startCam, fallPos, ease);
+          _targetLookPos.lerpVectors(startLook, fallLook, ease);
         } else {
           _targetCamPos.set(0, -47, -75);
           _targetLookPos.set(0, -50, -100);
@@ -212,10 +236,6 @@ const CameraRig = ({ isIntro }: { isIntro: boolean }) => {
         // Extremely smooth interpolation
         camera.position.lerp(_targetCamPos, 0.035);
         _currentLookTarget.lerp(_targetLookPos, 0.04);
-        
-        // Add mouse parallax on top of the interpolated position
-        camera.position.x += mx * 0.02;
-        camera.position.y += my * 0.02;
         
         camera.lookAt(_currentLookTarget);
       }
