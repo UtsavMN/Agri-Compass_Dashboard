@@ -79,7 +79,7 @@ export const KnowledgeGraphSection = () => {
             initial={{ opacity: 0, x: -30 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ ...LAYOUT_SPRING, delay: 0.2 }}
-            className="w-full lg:w-1/3 p-8 min-h-[300px] flex flex-col cursor-pointer hover:border-[var(--color-knowledge-gold)]/30 transition-colors"
+            className="w-full lg:w-1/3 p-8 min-h-[300px] flex flex-col cursor-pointer hover:border-[var(--color-knowledge-gold)]/30 transition-colors will-change-transform"
             onClick={() => activeNode && setModalNode(activeNode)}
           >
             <Typography variant="micro" color="gold" className="opacity-50 mb-4">
@@ -135,7 +135,7 @@ export const KnowledgeGraphSection = () => {
                   transition={{ ...LAYOUT_SPRING, delay: i * 0.1 }}
                   onClick={() => handleNodeClick(rec.concept)}
                   interaction="hover"
-                  className="w-full text-left p-5 group flex items-center justify-between"
+                  className="w-full text-left p-5 group flex items-center justify-between will-change-transform"
                 >
                   <div className="flex-1">
                     <Typography variant="heading-2" color="gold" className="mb-1 group-hover:text-white transition-colors">

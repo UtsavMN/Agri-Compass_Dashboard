@@ -66,7 +66,7 @@ export const TechSection = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ ...UI_SPRING, delay: i * 0.055 }}
-                className="p-6 transition-all duration-300 cursor-default"
+                className="p-6 transition-all duration-300 cursor-default will-change-transform"
                 interaction="hover"
               >
                 <div className="flex justify-between items-start mb-4">

@@ -21,7 +21,7 @@ export const Navbar = () => {
       transition={{ ...LAYOUT_SPRING, delay: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-[var(--color-earth-black)]/95 backdrop-blur-xl border-b border-[var(--color-glass-border,rgba(255,255,255,0.06))]"
+          ? "bg-[var(--color-earth-black)]/95 backdrop-blur-md border-b border-[var(--color-glass-border,rgba(255,255,255,0.06))]"
           : "bg-transparent"
       }`}
     >
@@ -123,7 +123,7 @@ export const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-[var(--color-glass-border,rgba(255,255,255,0.06))] bg-[var(--color-earth-black)]/95 backdrop-blur-xl overflow-hidden"
+            className="md:hidden border-t border-[var(--color-glass-border,rgba(255,255,255,0.06))] bg-[var(--color-earth-black)]/95 backdrop-blur-md overflow-hidden"
           >
             <div className="flex flex-col p-6 gap-6">
               {[
