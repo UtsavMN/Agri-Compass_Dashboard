@@ -5,8 +5,7 @@ import * as THREE from "three";
 export const CinematicEarth = ({ position }: { position: [number, number, number] }) => {
   const earthGroupRef = useRef<THREE.Group>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
-  const pinRef = useRef<THREE.Mesh>(null);
-  const cachedMeshesRef = useRef<{ rings: THREE.Object3D[], core: THREE.Object3D | null } | null>(null);
+  const beaconGlowRef = useRef<THREE.Mesh>(null);
   const customUniforms = useRef({ uTime: { value: 0 } });
 
   // Load textures
@@ -126,27 +125,28 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
           float fresnel = dot(viewDir, vNormal);
           fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
           
-          // Thinner, much softer glow
-          float edgeGlow = pow(fresnel, 6.0) * 1.2;
-          float coreGlow = pow(fresnel, 3.0) * 0.2;
+          // Ultra-thin, realistic atmospheric scattering
+          float edgeGlow = pow(fresnel, 8.0) * 0.6;
+          float coreGlow = pow(fresnel, 3.0) * 0.05;
           
           // Sunset/Sunrise reddish scatter on the terminator
           vec3 lightDir = normalize(vec3(10.0, 20.0, 10.0));
           float nDotL = dot(vNormal, lightDir);
-          float terminator = smoothstep(0.1, 0.4, nDotL) - smoothstep(0.5, 0.8, nDotL);
+          float terminator = smoothstep(0.0, 0.5, nDotL) - smoothstep(0.5, 1.0, nDotL);
           
           vec3 atmosColor = vec3(0.2, 0.5, 1.0); // Vibrant Azure
-          vec3 sunsetColor = vec3(1.0, 0.4, 0.1); // Warm orange/red
+          vec3 sunsetColor = vec3(0.8, 0.4, 0.1); // Warm orange/red
           
-          vec3 finalColor = mix(atmosColor, sunsetColor, terminator * 0.8);
+          vec3 finalColor = mix(atmosColor, sunsetColor, terminator * 0.5);
           
-          gl_FragColor = vec4(finalColor, (edgeGlow + coreGlow) * smoothstep(-0.2, 0.5, nDotL)); 
-          // Only show atmosphere strongly on the day side, fading into night
+          // Fade out completely on the dark side to prevent the artificial ring
+          float lightMask = smoothstep(-0.2, 0.3, nDotL);
+          
+          gl_FragColor = vec4(finalColor, (edgeGlow + coreGlow) * lightMask); 
         }
       `,
       transparent: true,
       blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
       depthWrite: false
     });
   }, []);
@@ -158,14 +158,7 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
     };
   }, [earthMat, atmosMat]);
 
-  useEffect(() => {
-    if (pinRef.current) {
-      cachedMeshesRef.current = {
-        rings: pinRef.current.children.filter(c => c.name === 'ring'),
-        core: pinRef.current.children.find(c => c.name === 'core') || null
-      };
-    }
-  }, []);
+
 
   useFrame((state, delta) => {
     if (!earthGroupRef.current) return;
@@ -181,20 +174,10 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
       cloudRef.current.rotation.y += delta * 0.025;
     }
     
-    // Pin pulsing radar effect
-    if (cachedMeshesRef.current) {
-      // 0 to 1 loop every 2 seconds
-      const pulse = (t % 2.0) / 2.0;
-      
-      cachedMeshesRef.current.rings.forEach((ring, i) => {
-        const offsetPulse = ((pulse + i * 0.5) % 1.0);
-        ring.scale.setScalar(1.0 + offsetPulse * 4.0);
-        ((ring as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = (1.0 - offsetPulse) * 0.8;
-      });
-      
-      if (cachedMeshesRef.current.core) {
-         cachedMeshesRef.current.core.scale.setScalar(1.0 + Math.sin(t * 8) * 0.2);
-      }
+    // Beacon pulsing effect
+    if (beaconGlowRef.current) {
+      beaconGlowRef.current.scale.setScalar(1.0 + Math.sin(t * 4.0) * 0.3);
+      (beaconGlowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.3 + Math.sin(t * 4.0) * 0.1;
     }
   });
 
@@ -229,32 +212,21 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
       
       {/* Atmosphere Glow */}
       <mesh material={atmosMat}>
-        <sphereGeometry args={[earthRadius + 0.05, 64, 64]} />
+        <sphereGeometry args={[earthRadius + 0.06, 64, 64]} />
       </mesh>
       
       {/* Karnataka Cinematic Beacon */}
-      <group position={[kX, kY, kZ]} ref={pinRef}>
+      <group position={[kX, kY, kZ]}>
         {/* Core Dot */}
-        <mesh name="core">
-          <sphereGeometry args={[0.015, 16, 16]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={1.0} />
+        <mesh>
+          <sphereGeometry args={[0.012, 16, 16]} />
+          <meshBasicMaterial color="#FFD700" />
         </mesh>
         
-        {/* Radar Rings */}
-        <mesh name="ring">
-          <ringGeometry args={[0.02, 0.025, 32]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={0.8} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
-        </mesh>
-        <mesh name="ring">
-          <ringGeometry args={[0.02, 0.025, 32]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={0.4} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
-        </mesh>
-        
-        {/* Vertical Light Shaft */}
-        <mesh position={[0, 0, 0]} rotation={[Math.PI/2, 0, 0]}>
-           <cylinderGeometry args={[0.005, 0.03, 1.0, 16]} />
-           <meshBasicMaterial color="#FFD700" transparent opacity={0.3} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
-           {/* Translate up so origin is at bottom */}
+        {/* Soft Outer Glow */}
+        <mesh ref={beaconGlowRef}>
+          <sphereGeometry args={[0.03, 16, 16]} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={0.3} blending={THREE.AdditiveBlending} depthWrite={false} />
         </mesh>
       </group>
     </group>
