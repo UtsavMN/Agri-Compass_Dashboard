@@ -198,7 +198,7 @@ export const KnowledgeGraphSection = () => {
                 </Typography>
                 
                 <div className="flex justify-end gap-4 mt-8">
-                  <Button variant="secondary" onClick={() => setModalNode(null)} className="px-6 py-2 border-white/10 text-white/70">
+                  <Button variant="ghost" onClick={() => setModalNode(null)} className="px-6 py-2 border border-white/10 text-white/70">
                     Close
                   </Button>
                   <Button variant="primary" onClick={() => setModalNode(null)} className="px-6 py-2">

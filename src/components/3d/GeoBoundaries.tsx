@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
 import * as THREE from 'three';
-import { useLoader } from '@react-three/fiber';
 
 interface GeoBoundariesProps {
   radius: number;
@@ -39,7 +38,6 @@ export const GeoBoundaries = ({ radius }: GeoBoundariesProps) => {
 
       // Helper to process a single linear ring (Polygon boundary)
       const processRing = (ring: number[][]) => {
-        const startIndex = currentIndex;
         for (let i = 0; i < ring.length; i++) {
           const [lon, lat] = ring[i];
           points.push(lonLatToVector3(lon, lat, r));
