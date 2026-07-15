@@ -71,7 +71,7 @@ export const KnowledgeGraphSection = () => {
           </Typography>
         </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center max-w-5xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center max-w-5xl mx-auto">
           
           {/* Active Node Detail */}
           <GlassPanel

@@ -17,7 +17,7 @@ export const DashboardShowcaseSection = () => (
       
       {/* Explainability Trust Label (Volume I, Chapter 05) */}
       <GlassPanel 
-        className="absolute -top-6 right-10 z-30 px-4 py-2 rounded-lg border-[var(--color-knowledge-gold)] flex items-center gap-2"
+        className="absolute -top-12 left-1/2 -translate-x-1/2 md:top-auto md:-bottom-6 md:left-auto md:translate-x-0 md:right-10 z-30 px-4 py-2 rounded-lg border-[var(--color-knowledge-gold)] flex items-center gap-2 whitespace-nowrap"
         interaction="none"
       >
         <div className="w-2 h-2 rounded-full bg-[var(--color-knowledge-gold)] animate-pulse" />
