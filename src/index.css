@@ -36,13 +36,47 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
-  /* Hide standard scrollbars for a premium cinematic feel */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  /* Custom elegant scrollbar instead of hiding it */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(229, 208, 143, 0.2) #0A0900;
 }
 
-body::-webkit-scrollbar {
-  display: none;
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-earth-black);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(229, 208, 143, 0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 208, 143, 0.4);
+}
+
+/* ─── CUSTOM RANGE SLIDERS ───────────────────────────────────────────────── */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--thumb-color, var(--color-knowledge-gold));
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  border: 2px solid var(--color-earth-black);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--thumb-color, var(--color-knowledge-gold));
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  border: 2px solid var(--color-earth-black);
 }
 
 /* ─── CUSTOM CURSOR ──────────────────────────────────────────────────────── */

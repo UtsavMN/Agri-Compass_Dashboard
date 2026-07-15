@@ -35,7 +35,9 @@ class TaperedTubeGeometry extends THREE.TubeGeometry {
          let z = pos.getZ(vIdx);
          
          const dir = new THREE.Vector3(x - pt.x, y - pt.y, z - pt.z).normalize();
-         const newPos = pt.clone().add(dir.multiplyScalar(rad));
+         // Smoothly ease the radius along the tube for perfect tapers
+         const easeRad = rad; 
+         const newPos = pt.clone().add(dir.multiplyScalar(easeRad));
          
          pos.setXYZ(vIdx, newPos.x, newPos.y, newPos.z);
       }
@@ -66,7 +68,7 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     isTrunk: boolean,
     currentPath: PathNode[]
   ) => {
-    const segments = 8; // High segments for ultra-smooth curving
+    const segments = 16; // Massively increased segments for ultra-smooth organic curves
     
     const curvePoints: THREE.Vector3[] = [startPos.clone()];
     const curveRadii: number[] = [startRad];
@@ -111,8 +113,10 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     currentPath.push({ pos: currentStart.clone(), dir: currentDir.clone(), radius: currentRad });
 
     if (curvePoints.length > 1) {
-      const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const tubeGeo = new TaperedTubeGeometry(curve, segments * 3, curveRadii, 24); // Increased from 8 to 24 for perfectly smooth, round trunk
+      // Use centripetal CatmullRom for perfectly smooth interpolation without sharp elbows
+      const curve = new THREE.CatmullRomCurve3(curvePoints, false, 'centripetal');
+      // 32 radial segments = perfectly round cylinders instead of blocky scaffolding
+      const tubeGeo = new TaperedTubeGeometry(curve, segments * 4, curveRadii, 32); 
       
       const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
       targetArray.push(tubeGeo);
@@ -127,9 +131,9 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
 
     const end = currentStart;
 
-    // Leaves - Huge clusters for volumetric canopy
-    if (depth <= 4) { // Changed from <= 2 to <= 4 to fill the entire center of the tree
-      const baseLeaves = depth === 0 ? 120 : depth === 1 ? 80 : depth === 2 ? 40 : 15;
+    // Leaves - Huge volumetric canopy
+    if (depth <= 4) { 
+      const baseLeaves = depth === 0 ? 150 : depth === 1 ? 100 : depth === 2 ? 60 : 25;
       const numLeaves = baseLeaves;
       for (let i = 0; i < numLeaves; i++) {
         if (depth > 1 && Math.random() > 0.6) continue;
@@ -263,8 +267,9 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     }
     
     if (rootPoints.length > 1) {
-      const rootCurve = new THREE.CatmullRomCurve3(rootPoints);
-      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 3, rootRadii, 8);
+      const rootCurve = new THREE.CatmullRomCurve3(rootPoints, false, 'centripetal');
+      // 32 radial segments for smooth roots
+      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 4, rootRadii, 32);
       rootGeometries.push(rootGeo);
     }
   }

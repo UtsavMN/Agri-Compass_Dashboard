@@ -121,7 +121,10 @@ const NPKInteractive = () => {
             type="range" min={10} max={100} value={npk[key]}
             onChange={(e) => setNpk((prev) => ({ ...prev, [key]: +e.target.value }))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-            style={{ background: `linear-gradient(to right, ${color} ${npk[key]}%, var(--color-earth-black) ${npk[key]}%)` }}
+            style={{ 
+              background: `linear-gradient(to right, ${color} ${npk[key]}%, var(--color-earth-black) ${npk[key]}%)`,
+              '--thumb-color': color 
+            } as React.CSSProperties}
             aria-label={`Adjust ${label}`}
           />
         </div>
