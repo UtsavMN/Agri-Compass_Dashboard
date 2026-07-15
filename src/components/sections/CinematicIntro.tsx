@@ -6,7 +6,7 @@ import { LAYOUT_SPRING } from "../../constants/springs";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 // Compass loading animation
-const CompassLoader = ({ progress }: { progress: number }) => (
+const CompassLoader = ({ progress, ready, onEnter }: { progress: number, ready: boolean, onEnter: () => void }) => (
   <motion.div
     className="fixed inset-0 z-50 bg-[#080a05] flex flex-col items-center justify-center"
     exit={{ opacity: 0, transition: { duration: 1.2 } }}
@@ -36,17 +36,31 @@ const CompassLoader = ({ progress }: { progress: number }) => (
       <circle cx="24" cy="24" r="3" fill="#E5D08F" />
       <circle cx="24" cy="24" r="1" fill="#080a05" />
     </svg>
-    <div className="w-52 h-0.5 bg-[#2A2720] rounded-full overflow-hidden mb-6">
+    <div className="w-52 h-0.5 bg-[#2A2720] rounded-full overflow-hidden mb-6 relative">
       <motion.div 
-        className="h-full bg-[#E5D08F] rounded-full"
+        className="absolute left-0 top-0 h-full bg-[#E5D08F] rounded-full"
         initial={{ width: "0%" }}
         animate={{ width: `${Math.min(progress, 100)}%` }}
         transition={LAYOUT_SPRING}
       />
     </div>
-    <p className="text-[#F5F0E8]/20 text-xs font-mono tracking-[0.3em] uppercase">
-      Initialising AgriCompass
-    </p>
+    
+    <div className="h-12 flex items-center justify-center">
+      {ready ? (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={onEnter}
+          className="text-[#E5D08F] text-xs font-mono tracking-[0.3em] uppercase border border-[#E5D08F]/40 px-6 py-2.5 rounded hover:bg-[#E5D08F]/10 transition-colors"
+        >
+          Enter Experience
+        </motion.button>
+      ) : (
+        <p className="text-[#F5F0E8]/20 text-xs font-mono tracking-[0.3em] uppercase">
+          Initialising AgriCompass
+        </p>
+      )}
+    </div>
   </motion.div>
 );
 
@@ -82,6 +96,7 @@ const phases = [
 export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
   const [phase, setPhase] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [readyToEnter, setReadyToEnter] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [showSkip, setShowSkip] = useState(false);
   const prefersReduced = useReducedMotion();
@@ -100,7 +115,7 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
       setLoadProgress((p) => {
         if (p >= 100) {
           clearInterval(interval);
-          setTimeout(() => { setLoaded(true); setShowSkip(true); }, 400);
+          setTimeout(() => { setReadyToEnter(true); }, 400);
           return 100;
         }
         return p + Math.random() * 7 + 2;
@@ -108,6 +123,11 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
     }, 120);
     return () => clearInterval(interval);
   }, []);
+
+  const handleEnter = () => {
+    setLoaded(true);
+    setShowSkip(true);
+  };
 
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
@@ -132,7 +152,7 @@ export const CinematicIntro = ({ onComplete }: { onComplete: () => void }) => {
   return (
     <>
       <AnimatePresence>
-        {!loaded && <CompassLoader progress={loadProgress} />}
+        {!loaded && <CompassLoader progress={loadProgress} ready={readyToEnter} onEnter={handleEnter} />}
       </AnimatePresence>
 
       {/* Phase text overlay */}

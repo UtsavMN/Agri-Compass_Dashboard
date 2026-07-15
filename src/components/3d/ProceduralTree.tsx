@@ -66,16 +66,17 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     startRad: number,
     depth: number,
     isTrunk: boolean,
-    currentPath: PathNode[]
+    currentPath: PathNode[],
+    parentEndRad: number
   ) => {
-    const segments = 16; // Massively increased segments for ultra-smooth organic curves
+    const segments = 8; // Restored to performant segment count
     
     const curvePoints: THREE.Vector3[] = [startPos.clone()];
     const curveRadii: number[] = [startRad];
     
-    // Smooth Branch Joints: Place a sphere at the fork to perfectly round off the sharp angle
-    if (!isTrunk && depth > 0) {
-        const jointSphere = new THREE.SphereGeometry(startRad * 0.95, 24, 24);
+    // Seamless Organic Joints: Weld the cylinders using a sphere matching the parent's exact exit radius
+    if (!isTrunk && depth > 0 && parentEndRad > 0) {
+        const jointSphere = new THREE.SphereGeometry(parentEndRad * 0.98, 12, 12);
         const jointMat = new THREE.Matrix4().setPosition(startPos);
         jointSphere.applyMatrix4(jointMat);
         const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
@@ -115,8 +116,8 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     if (curvePoints.length > 1) {
       // Use centripetal CatmullRom for perfectly smooth interpolation without sharp elbows
       const curve = new THREE.CatmullRomCurve3(curvePoints, false, 'centripetal');
-      // 32 radial segments = perfectly round cylinders instead of blocky scaffolding
-      const tubeGeo = new TaperedTubeGeometry(curve, segments * 4, curveRadii, 32); 
+      // 12 radial segments for 60FPS performance, perfectly smooth via computeVertexNormals
+      const tubeGeo = new TaperedTubeGeometry(curve, segments * 2, curveRadii, 12); 
       
       const targetArray = depth > 3 ? coreBranchGeometries : twigGeometries;
       targetArray.push(tubeGeo);
@@ -199,12 +200,12 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
       const nextLen = isTrunk ? len * 0.7 : len * (0.75 + Math.random() * 0.2);
       const nextRad = currentRad * (0.75 + Math.random() * 0.05); // Less abrupt radius jump at joints
 
-      buildBranch(end, newDir, nextLen, nextRad, depth - 1, false, [...currentPath]);
+      buildBranch(end, newDir, nextLen, nextRad, depth - 1, false, [...currentPath], currentRad);
     }
   };
 
   // Start building the core tree with massive radius
-  buildBranch(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true, []);
+  buildBranch(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1, 0), initialLength, initialRadius, iterations, true, [], 0);
 
 
 
@@ -268,8 +269,8 @@ const generateSeamlessTree = (iterations = 7, initialLength = 4.0, initialRadius
     
     if (rootPoints.length > 1) {
       const rootCurve = new THREE.CatmullRomCurve3(rootPoints, false, 'centripetal');
-      // 32 radial segments for smooth roots
-      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 4, rootRadii, 32);
+      // 12 radial segments for smooth roots (restored performance)
+      const rootGeo = new TaperedTubeGeometry(rootCurve, rootPoints.length * 2, rootRadii, 12);
       rootGeometries.push(rootGeo);
     }
   }
