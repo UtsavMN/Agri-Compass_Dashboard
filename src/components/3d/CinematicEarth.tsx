@@ -201,11 +201,11 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
   // Calculate Karnataka position
   // Lat: 15.31 N, Lon: 75.71 E
   const lat = 15.31 * (Math.PI / 180);
-  const lon = -75.71 * (Math.PI / 180); // Inverted for standard Threejs sphere
+  const lonRad = -75.71 * (Math.PI / 180);
   const r = earthRadius + 0.01;
-  const kX = r * Math.cos(lat) * Math.cos(lon);
+  const kX = -r * Math.cos(lat) * Math.sin(lonRad);
   const kY = r * Math.sin(lat);
-  const kZ = r * Math.cos(lat) * Math.sin(lon);
+  const kZ = -r * Math.cos(lat) * Math.cos(lonRad);
 
   return (
     <group ref={earthGroupRef} position={position}>

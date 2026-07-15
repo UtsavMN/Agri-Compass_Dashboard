@@ -34,11 +34,11 @@ const dynamicLookCurve = new THREE.CatmullRomCurve3([
 const sharedEuler = new THREE.Euler(0, 0, 0, 'XYZ');
 const getEarthSurfacePoint = (latDeg: number, lonDeg: number, radius: number, time: number, target: THREE.Vector3) => {
   const lat = latDeg * (Math.PI / 180);
-  const lon = -lonDeg * (Math.PI / 180);
+  const lonRad = -lonDeg * (Math.PI / 180);
   target.set(
-    radius * Math.cos(lat) * Math.cos(lon),
+    -radius * Math.cos(lat) * Math.sin(lonRad),
     radius * Math.sin(lat),
-    radius * Math.cos(lat) * Math.sin(lon)
+    -radius * Math.cos(lat) * Math.cos(lonRad)
   );
   sharedEuler.set(0.1, time * 0.02, 0, 'XYZ');
   target.applyEuler(sharedEuler);
