@@ -1,6 +1,7 @@
 import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
+import { GeoBoundaries } from "./GeoBoundaries";
 
 export const CinematicEarth = ({ position }: { position: [number, number, number] }) => {
   const earthGroupRef = useRef<THREE.Group>(null);
@@ -209,6 +210,9 @@ export const CinematicEarth = ({ position }: { position: [number, number, number
           depthWrite={false}
         />
       </mesh>
+      
+      {/* GeoJSON Borders */}
+      <GeoBoundaries radius={earthRadius} />
       
       {/* Atmosphere Glow */}
       <mesh material={atmosMat}>
