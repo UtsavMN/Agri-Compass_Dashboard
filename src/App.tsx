@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { GlobalGrain } from "./components/layout/GlobalGrain";
+import { CustomCursor } from "./components/ui/CustomCursor";
 
 const NotFound = () => (
   <div className="min-h-screen bg-[#0A0900] flex flex-col items-center justify-center">
@@ -17,6 +18,7 @@ export default function App() {
   return (
     <>
       <GlobalGrain />
+      <CustomCursor />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />

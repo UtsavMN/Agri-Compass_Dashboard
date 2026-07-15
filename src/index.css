@@ -45,7 +45,12 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-
+/* ─── CUSTOM CURSOR ──────────────────────────────────────────────────────── */
+@media (pointer: fine) {
+  body, a, button, input, textarea, select, .premium-card {
+    cursor: none !important;
+  }
+}
 
 /* ─── GLOBAL SELECTION ───────────────────────────────────────────────────── */
 ::selection {
